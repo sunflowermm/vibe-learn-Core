@@ -35,7 +35,6 @@ const edges = ref(buildFlowEdges());
 const nodeTypes = {
   knowledge: GraphCard,
   chapter: ChapterFrame,
-  stub: GraphCard,
 };
 const edgeTypes = { relation: RelationEdge };
 
@@ -226,7 +225,7 @@ function resetLayout() {
 }
 
 .graph-wrap :deep(.vue-flow__node-chapter) {
-  z-index: 0 !important;
+  z-index: 1 !important;
   padding: 0 !important;
   border: none !important;
   background: transparent !important;

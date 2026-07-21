@@ -3,6 +3,15 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import KnowledgeGraph from './components/KnowledgeGraph.vue';
 import NodePanel from './components/NodePanel.vue';
 import { useBlobity } from './composables/useBlobity.js';
+import {
+  clampGraphHeight,
+  clampPanelWidth,
+  isStackedLayout,
+  persistGraphHeight,
+  persistPanelWidth,
+  readGraphHeight,
+  readPanelWidth,
+} from './composables/usePanelResize.js';
 import { getNodeById, countTopics } from './data/nodes.js';
 
 const THEME_KEY = 'vibe-learn-theme';
@@ -18,9 +27,9 @@ function readTheme() {
 function readNodeFromUrl() {
   try {
     const id = new URLSearchParams(window.location.search).get('node');
-    return id && getNodeById(id) ? id : 'chapter-computer-network';
+    return id && getNodeById(id) ? id : 'computer-system';
   } catch {
-    return 'chapter-computer-network';
+    return 'computer-system';
   }
 }
 
@@ -40,6 +49,24 @@ const theme = ref(readTheme());
 /** 面板 chip 跳转时递增，驱动图谱聚焦该节点 */
 const focusNonce = ref(0);
 const activeNode = computed(() => (activeId.value ? getNodeById(activeId.value) : null));
+
+const panelWidth = ref(readPanelWidth());
+const graphHeight = ref(readGraphHeight());
+const stacked = ref(isStackedLayout());
+const resizing = ref(false);
+
+const workspaceStyle = computed(() => {
+  if (stacked.value) {
+    return {
+      gridTemplateColumns: '1fr',
+      gridTemplateRows: `${graphHeight.value}px minmax(0, 1fr)`,
+    };
+  }
+  return {
+    gridTemplateColumns: `minmax(0, 1fr) ${panelWidth.value}px`,
+    gridTemplateRows: 'minmax(0, 1fr)',
+  };
+});
 
 useBlobity(theme);
 
@@ -79,8 +106,94 @@ function onKey(e) {
   if (e.key === 'Escape') clearSelection();
 }
 
-onMounted(() => window.addEventListener('keydown', onKey));
-onUnmounted(() => window.removeEventListener('keydown', onKey));
+function syncLayoutMode() {
+  stacked.value = isStackedLayout();
+  panelWidth.value = clampPanelWidth(panelWidth.value);
+  graphHeight.value = clampGraphHeight(graphHeight.value);
+}
+
+/**
+ * @param {PointerEvent} e
+ */
+function startResize(e) {
+  if (e.button !== 0) return;
+  e.preventDefault();
+  const startX = e.clientX;
+  const startY = e.clientY;
+  const startW = panelWidth.value;
+  const startH = graphHeight.value;
+  const mode = stacked.value ? 'row' : 'col';
+  resizing.value = true;
+  document.body.classList.add(mode === 'col' ? 'is-resizing-col' : 'is-resizing-row');
+
+  const target = e.currentTarget;
+  target.setPointerCapture?.(e.pointerId);
+
+  function onMove(ev) {
+    if (mode === 'col') {
+      const next = clampPanelWidth(startW + (startX - ev.clientX));
+      panelWidth.value = next;
+    } else {
+      const next = clampGraphHeight(startH + (ev.clientY - startY));
+      graphHeight.value = next;
+    }
+  }
+
+  function onUp(ev) {
+    resizing.value = false;
+    document.body.classList.remove('is-resizing-col', 'is-resizing-row');
+    target.releasePointerCapture?.(ev.pointerId);
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+    window.removeEventListener('pointercancel', onUp);
+    if (mode === 'col') persistPanelWidth(panelWidth.value);
+    else persistGraphHeight(graphHeight.value);
+  }
+
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', onUp);
+  window.addEventListener('pointercancel', onUp);
+}
+
+function nudgePanel(delta) {
+  if (stacked.value) {
+    graphHeight.value = clampGraphHeight(graphHeight.value + delta);
+    persistGraphHeight(graphHeight.value);
+  } else {
+    panelWidth.value = clampPanelWidth(panelWidth.value + delta);
+    persistPanelWidth(panelWidth.value);
+  }
+}
+
+function onSplitKey(e) {
+  const step = e.shiftKey ? 48 : 24;
+  if (stacked.value) {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      nudgePanel(-step);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      nudgePanel(step);
+    }
+  } else if (e.key === 'ArrowLeft') {
+    e.preventDefault();
+    nudgePanel(step);
+  } else if (e.key === 'ArrowRight') {
+    e.preventDefault();
+    nudgePanel(-step);
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onKey);
+  window.addEventListener('resize', syncLayoutMode);
+  syncLayoutMode();
+});
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKey);
+  window.removeEventListener('resize', syncLayoutMode);
+  document.body.classList.remove('is-resizing-col', 'is-resizing-row');
+});
 </script>
 
 <template>
@@ -104,11 +217,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
         >
           {{ theme === 'dark' ? '深色' : '浅色' }}
         </button>
-        <div class="topbar-meta">第一章 <strong>{{ countTopics() }}</strong> 个主题</div>
+        <div class="topbar-meta">图谱 <strong>{{ countTopics() }}</strong> 个主题</div>
       </div>
     </header>
 
-    <div class="workspace">
+    <div class="workspace" :class="{ 'is-resizing': resizing }" :style="workspaceStyle">
       <section class="graph-pane" aria-label="知识图谱画布">
         <KnowledgeGraph
           :active-id="activeId"
@@ -120,6 +233,18 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
       </section>
 
       <aside id="learn-panel" class="panel-pane" aria-label="节点讲解">
+        <div
+          class="split-handle"
+          :class="stacked ? 'split-handle--row' : 'split-handle--col'"
+          role="separator"
+          :aria-orientation="stacked ? 'horizontal' : 'vertical'"
+          :aria-label="stacked ? '拖动调整图谱高度' : '拖动调整讲解区宽度'"
+          :aria-valuenow="stacked ? graphHeight : panelWidth"
+          :title="stacked ? '上下拖动调整高度' : '左右拖动调整宽度'"
+          tabindex="0"
+          @pointerdown="startResize"
+          @keydown="onSplitKey"
+        />
         <NodePanel
           v-if="activeNode"
           :node="activeNode"
@@ -128,7 +253,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
         />
         <div v-else class="empty-hint">
           <h2>选择一个节点</h2>
-          <p>点卡片看讲解；拖空白平移画布；拖章标题可整章移动。Esc 或点空白取消选中。</p>
+          <p>图谱：序章机器 → 一环境 → 二语言 → 三网络 → 四 XRK 实践 · 番外代理。点卡片阅读；Esc 取消选中。拖动分割条可调整讲解区大小。</p>
         </div>
       </aside>
     </div>

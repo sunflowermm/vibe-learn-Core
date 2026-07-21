@@ -213,14 +213,87 @@ button:focus-visible {
 
 .workspace {
   display: grid;
-  grid-template-columns: 1fr minmax(300px, 36vw);
+  grid-template-columns: minmax(0, 1fr) 420px;
+  grid-template-rows: minmax(0, 1fr);
   min-height: 0;
+  position: relative;
+}
+
+.workspace.is-resizing {
+  user-select: none;
+}
+
+.split-handle {
+  z-index: 6;
+  touch-action: none;
+  background: transparent;
+  position: absolute;
+}
+
+.split-handle--col {
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  transform: translateX(-50%);
+  cursor: col-resize;
+}
+
+.split-handle--row {
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 12px;
+  transform: translateY(-50%);
+  cursor: row-resize;
+}
+
+.split-handle::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mist-dim) 45%, transparent);
+  transform: translate(-50%, -50%);
+  transition: background 0.15s ease;
+}
+
+.split-handle--col::after {
+  width: 3px;
+  height: 42px;
+}
+
+.split-handle--row::after {
+  width: 42px;
+  height: 3px;
+}
+
+.split-handle:hover::after,
+.split-handle:focus-visible::after,
+.workspace.is-resizing .split-handle::after {
+  background: var(--accent);
+}
+
+.split-handle:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+body.is-resizing-col,
+body.is-resizing-col * {
+  cursor: col-resize !important;
+}
+
+body.is-resizing-row,
+body.is-resizing-row * {
+  cursor: row-resize !important;
 }
 
 @media (max-width: 960px) {
   .workspace {
     grid-template-columns: 1fr;
-    grid-template-rows: 48vh 1fr;
+    grid-template-rows: 48vh minmax(0, 1fr);
   }
   .brand-sub {
     display: none;
@@ -234,11 +307,14 @@ button:focus-visible {
 .graph-pane {
   position: relative;
   min-height: 0;
+  min-width: 0;
   background: var(--canvas);
 }
 
 .panel-pane {
+  position: relative;
   min-height: 0;
+  min-width: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;

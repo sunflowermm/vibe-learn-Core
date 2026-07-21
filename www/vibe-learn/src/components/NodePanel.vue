@@ -1,7 +1,8 @@
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue';
-import { marked } from 'marked';
 import NetworkLab from './NetworkLab.vue';
+import LessonBody from './LessonBody.vue';
+import TermsBlock from './TermsBlock.vue';
 import { resolveNodes } from '../data/nodes.js';
 
 const props = defineProps({
@@ -13,18 +14,8 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'navigate']);
 
-marked.setOptions({
-  gfm: true,
-  breaks: false,
-});
-
 const scrollEl = ref(null);
 const titleEl = ref(null);
-
-const html = computed(() => {
-  if (!props.node?.markdown) return '';
-  return marked.parse(props.node.markdown);
-});
 
 const showLab = computed(() => props.node?.lab === 'osi');
 const prereqNodes = computed(() => resolveNodes(props.node?.prereqs));
@@ -115,7 +106,9 @@ watch(
         </div>
       </nav>
 
-      <article class="md" v-html="html" />
+      <TermsBlock :node-id="node.id" @navigate="emit('navigate', $event)" />
+
+      <LessonBody v-if="node.markdown" :markdown="node.markdown" />
       <NetworkLab v-if="showLab" />
     </div>
   </div>
@@ -194,30 +187,30 @@ watch(
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 1.1rem 1.4rem 2.4rem;
+  padding: 1.25rem 1.65rem 2.75rem;
   scrollbar-width: thin;
   scrollbar-color: var(--accent-soft) transparent;
   overscroll-behavior: contain;
 }
 
 .panel__role {
-  margin: 0 0 0.9rem;
-  padding: 0.75rem 0.9rem;
-  border-radius: 8px;
+  margin: 0 0 1rem;
+  padding: 0.85rem 1.05rem;
+  border-radius: 10px;
   font-size: 0.9rem;
   line-height: 1.55;
   color: var(--mist);
   background: var(--accent-soft);
-  border: 1px solid var(--line);
+  border: 1px solid color-mix(in srgb, var(--mist) 14%, transparent);
 }
 
 .panel__nav {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
-  margin-bottom: 1.15rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--line);
+  margin-bottom: 1.25rem;
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--mist) 12%, transparent);
 }
 
 .panel__nav-row {
@@ -241,7 +234,7 @@ watch(
   border-radius: 999px;
   color: var(--mist);
   background: var(--ink-3);
-  border: 1px solid var(--line);
+  border: 1px solid color-mix(in srgb, var(--mist) 14%, transparent);
   transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
 }
 
@@ -269,135 +262,5 @@ watch(
 .panel__chip.extend:hover {
   border-color: var(--accent);
   background: var(--accent-soft);
-}
-
-.md {
-  font-size: 0.95rem;
-  line-height: 1.7;
-  color: var(--mist);
-}
-
-.md :deep(h1) {
-  display: none;
-}
-
-.md :deep(h2) {
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-  font-weight: 600;
-  color: var(--node-title);
-  margin: 1.45rem 0 0.55rem;
-  letter-spacing: -0.01em;
-  padding-bottom: 0.3rem;
-  border-bottom: 1px solid var(--line);
-}
-
-.md :deep(h2:first-of-type) {
-  margin-top: 0.2rem;
-}
-
-.md :deep(h3) {
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--node-title);
-  margin: 1.15rem 0 0.4rem;
-}
-
-.md :deep(p) {
-  margin: 0.55rem 0;
-}
-
-.md :deep(h3 + p),
-.md :deep(h3 + ul) {
-  margin-top: 0.3rem;
-}
-
-.md :deep(hr) {
-  border: none;
-  border-top: 1px solid var(--line);
-  margin: 1.35rem 0;
-}
-
-.md :deep(blockquote) {
-  margin: 0.75rem 0;
-  padding: 0.6rem 0.85rem;
-  border-left: 3px solid var(--accent);
-  background: var(--accent-soft);
-  border-radius: 0 8px 8px 0;
-  color: var(--mist);
-}
-
-.md :deep(blockquote p) {
-  margin: 0;
-}
-
-.md :deep(ol),
-.md :deep(ul) {
-  margin: 0.45rem 0;
-  padding-left: 1.25rem;
-}
-
-.md :deep(li) {
-  margin: 0.35rem 0;
-  line-height: 1.6;
-}
-
-.md :deep(table) {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 0.75rem 0 1rem;
-  font-size: 0.88rem;
-}
-
-.md :deep(th),
-.md :deep(td) {
-  border: 1px solid var(--line);
-  padding: 0.45rem 0.6rem;
-  text-align: left;
-}
-
-.md :deep(th) {
-  background: var(--accent-soft);
-  color: var(--node-title);
-  font-weight: 600;
-}
-
-.md :deep(code) {
-  font-family: var(--font-mono);
-  font-size: 0.82em;
-  padding: 0.1em 0.35em;
-  border-radius: 4px;
-  background: color-mix(in srgb, var(--amber) 12%, transparent);
-  color: var(--amber);
-}
-
-.md :deep(pre) {
-  margin: 0.75rem 0;
-  padding: 0.85rem 1rem;
-  border-radius: 8px;
-  overflow: auto;
-  background: var(--ink-3);
-  border: 1px solid var(--line);
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  line-height: 1.5;
-  color: var(--mist);
-}
-
-.md :deep(pre code) {
-  padding: 0;
-  background: none;
-  color: inherit;
-}
-
-.md :deep(strong) {
-  color: var(--node-title);
-  font-weight: 600;
-}
-
-.md :deep(input[type='checkbox']) {
-  margin-right: 0.4rem;
-  accent-color: var(--accent);
 }
 </style>

@@ -39,7 +39,8 @@ defineProps({
   position: absolute;
   left: 12px;
   top: 12px;
-  max-width: min(440px, calc(100% - 28px));
+  z-index: 2;
+  max-width: min(420px, calc(100% - 28px));
   display: flex;
   align-items: center;
   gap: 10px;

@@ -1,6 +1,3 @@
-/**
- * 实心色卡底色 + 连线同色相（字色在 GraphCard 内统一为白）
- */
 export const TONES = {
   indigo: { id: 'indigo', bg: '#4f46e5', edge: '#818cf8' },
   pink: { id: 'pink', bg: '#db2777', edge: '#f472b6' },
@@ -8,11 +5,29 @@ export const TONES = {
   orange: { id: 'orange', bg: '#ea580c', edge: '#fb923c' },
   violet: { id: 'violet', bg: '#7c3aed', edge: '#a78bfa' },
   rose: { id: 'rose', bg: '#e11d48', edge: '#fb7185' },
+  teal: { id: 'teal', bg: '#0d9488', edge: '#2dd4bf' },
+  slate: { id: 'slate', bg: '#475569', edge: '#94a3b8' },
 };
 
-/** 各节点色块（主线错开，番外偏橙/天空） */
 export const NODE_TONE = {
   'computer-system': 'indigo',
+  'os-essence': 'slate',
+  'hw-sw-link': 'teal',
+  'chip-units': 'orange',
+
+  'terminal-worlds': 'slate',
+  'linux-distros': 'sky',
+  'linux-cli': 'teal',
+  'runtime-nodejs': 'sky',
+  'installers-path': 'indigo',
+  'package-managers': 'violet',
+  'git-workspace': 'orange',
+  'xrk-first-run': 'teal',
+
+  'lang-compiled-runtime': 'violet',
+  'lang-landscape': 'pink',
+  'lang-to-runtime': 'indigo',
+
   'api-frontend': 'pink',
   'network-basics': 'sky',
   'protocol-stack': 'violet',
@@ -22,7 +37,13 @@ export const NODE_TONE = {
   'dns-https': 'pink',
   'http-web': 'violet',
   'reverse-proxy': 'rose',
-  'stub-xrk-agt': 'pink',
+
+  'xrk-overview': 'pink',
+  'xrk-runtime': 'violet',
+  'xrk-core-layout': 'indigo',
+  'xrk-http-www': 'sky',
+  'xrk-config': 'rose',
+
   clash: 'orange',
   'clash-port': 'sky',
   'clash-setup': 'violet',

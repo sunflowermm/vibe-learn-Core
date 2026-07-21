@@ -1,23 +1,20 @@
 # vibe-learn-Core
 
-纯 `www` 学习 Core：知识节点图谱，练 vibe coding。
+纯 `www` 学习 Core：知识节点图谱。
 
 ## 访问
 
-启动 AGT 后打开主服路径：`/vibe-learn/`  
-（`sign.json` 声明后由主服自动拉起前端并反代。）
+主服路径：`/vibe-learn/`（`sign.json` 声明后自动构建并反代）。
 
-## 图谱模型
+## 章节
 
-| kind | 含义 |
-|------|------|
-| `chapter` | 章框装饰层（**不是** Vue Flow `parentNode`） |
-| `topic` | 章内知识点（绝对坐标，`data.chapterId` 归属；拖章标题时一起平移） |
-| `stub` | 框外延伸：第二章 / 番外（独立节点，不跟章框拖动） |
+| 章 | 名称 | 内容块（摘要） |
+|----|------|----------------|
+| 00 | 序章 · 认识计算机 | 系统本质 · 软硬件联动 · CPU/GPU… |
+| 01 | 环境与终端 | 终端环境 · 发行版 · 基础指令 · Node/pnpm/Git · 首次跑通 |
+| 02 | 计算机语言 | 编译与运行时 · 版图 · 接到本仓 |
+| 03 | 计算机网络 | 主机 → 网关 |
+| 04 | XRK-AGT | **项目实践** |
+| 番外 | 代理引擎 | Clash 线 |
 
-入口：`www/vibe-learn/src/data/nodes.js`。
-
-## 技术栈
-
-- Vue 3 + Vite · [Vue Flow](https://vueflow.dev/) · `marked`
-- 协议栈节点含 OSI 交互实验室
+数据入口：`www/vibe-learn/src/data/nodes.js`。
