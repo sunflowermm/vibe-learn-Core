@@ -26,6 +26,7 @@ defineProps({
   border-radius: 18px;
   border: 2px dashed var(--chapter-border);
   background: var(--chapter-bg);
+  /* 框体装饰；拖动只靠 .chapter__drag（节点外壳另设穿透） */
   pointer-events: none;
 }
 
@@ -56,7 +57,7 @@ defineProps({
 .chapter__head:hover {
   transform: scale(1.02);
   box-shadow:
-    0 0 0 2px rgba(255, 255, 255, 0.85),
+    0 0 0 2px rgba(255, 255, 255, 0.35),
     var(--shadow-node);
 }
 

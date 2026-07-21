@@ -38,11 +38,13 @@ const nodeTypes = {
 };
 const edgeTypes = { relation: RelationEdge };
 
-/** 黑天也用线阵并提亮，避免点阵看不清 */
+/** 网格：暗底用弱灰线，不要发白 */
 const bgVariant = computed(() => 'lines');
-const bgColor = computed(() => (props.theme === 'light' ? '#cbd5e1' : '#71717a'));
-const bgGap = computed(() => (props.theme === 'light' ? 22 : 20));
-const bgSize = computed(() => (props.theme === 'light' ? 1 : 1.35));
+const bgColor = computed(() =>
+  props.theme === 'light' ? '#e2e8f0' : 'rgba(161, 161, 170, 0.18)'
+);
+const bgGap = computed(() => 24);
+const bgSize = computed(() => 1);
 const miniMask = computed(() =>
   props.theme === 'light' ? 'rgba(248, 250, 252, 0.7)' : 'rgba(9, 9, 11, 0.72)'
 );
@@ -195,10 +197,17 @@ function miniColor(node) {
   background: transparent !important;
   box-shadow: none !important;
   cursor: default !important;
+  /* 大框本身穿透，空白处可平移画布；只有小卡片接事件 */
+  pointer-events: none !important;
 }
 
 .graph-wrap :deep(.vue-flow__node-chapter .chapter__drag) {
+  pointer-events: auto !important;
   cursor: grab;
+}
+
+.graph-wrap :deep(.vue-flow__node-chapter .chapter__drag:active) {
+  cursor: grabbing;
 }
 
 .graph-wrap :deep(.vue-flow__edge-path) {

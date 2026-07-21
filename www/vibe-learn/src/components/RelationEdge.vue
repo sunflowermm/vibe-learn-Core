@@ -22,12 +22,13 @@ const props = defineProps({
 });
 
 const text = computed(() => props.label || props.data?.label || '');
-const stroke = computed(() => props.data?.color || '#94a3b8');
+const stroke = computed(() => props.data?.color || 'var(--edge-stroke)');
 
 const pathStyle = computed(() => ({
   stroke: stroke.value,
-  strokeWidth: props.selected ? 2.4 : 2,
-  strokeDasharray: '6 5',
+  strokeWidth: props.selected ? 2 : 1.5,
+  strokeDasharray: '5 6',
+  strokeOpacity: props.selected ? 0.88 : 'var(--edge-opacity)',
   ...(props.style || {}),
 }));
 
@@ -49,8 +50,8 @@ const labelStyle = computed(() => ({
   transform: `translate(-50%, -50%) translate(${geometry.value.lx}px, ${geometry.value.ly}px)`,
   pointerEvents: 'none',
   zIndex: 4,
-  borderColor: stroke.value,
-  color: stroke.value,
+  borderColor: 'var(--label-border)',
+  color: 'var(--label-fg)',
 }));
 </script>
 

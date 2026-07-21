@@ -47,13 +47,13 @@ const toneStyle = computed(() => {
 .stub:hover {
   transform: scale(1.02) translateY(-2px);
   box-shadow:
-    0 0 0 2px rgba(255, 255, 255, 0.85),
-    0 16px 40px rgba(15, 23, 42, 0.2);
+    0 0 0 2px rgba(255, 255, 255, 0.35),
+    0 16px 40px rgba(0, 0, 0, 0.35);
 }
 
 .stub.selected {
   box-shadow:
-    0 0 0 3px rgba(255, 255, 255, 0.9),
+    0 0 0 2px rgba(255, 255, 255, 0.45),
     var(--shadow-node);
 }
 
@@ -62,30 +62,30 @@ const toneStyle = computed(() => {
   font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--card-muted);
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .stub__title {
   margin-top: 7px;
   font-size: 15px;
   font-weight: 700;
-  color: var(--card-fg);
+  color: #fff;
 }
 
 .stub__sub {
   margin-top: 6px;
   font-size: 12px;
   line-height: 1.4;
-  color: var(--card-muted);
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .stub__handle {
   width: 18px !important;
   height: 4px !important;
   border-radius: 2px !important;
-  background: #94a3b8 !important;
+  background: rgba(255, 255, 255, 0.45) !important;
   border: none !important;
-  opacity: 0.85;
+  opacity: 1;
   pointer-events: none !important;
 }
 </style>

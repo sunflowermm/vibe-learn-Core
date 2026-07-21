@@ -362,6 +362,7 @@ export function buildFlowNodes() {
     },
     selectable: true,
     draggable: true,
+    /* 仅小标题条拖整章；框内空白不抢画布平移 */
     dragHandle: '.chapter__drag',
     zIndex: 0,
   }));

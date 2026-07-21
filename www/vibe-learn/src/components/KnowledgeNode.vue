@@ -51,14 +51,14 @@ const toneStyle = computed(() => {
 .k-node:hover {
   transform: scale(1.02) translateY(-2px);
   box-shadow:
-    0 0 0 2px rgba(255, 255, 255, 0.85),
-    0 16px 40px rgba(15, 23, 42, 0.2);
+    0 0 0 2px rgba(255, 255, 255, 0.35),
+    0 16px 40px rgba(0, 0, 0, 0.35);
 }
 
 .k-node.selected {
-  filter: brightness(1.06);
+  filter: brightness(1.04);
   box-shadow:
-    0 0 0 3px rgba(255, 255, 255, 0.9),
+    0 0 0 2px rgba(255, 255, 255, 0.45),
     var(--shadow-node);
 }
 
@@ -67,9 +67,8 @@ const toneStyle = computed(() => {
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  opacity: 0.9;
   margin-bottom: 8px;
-  color: var(--card-muted);
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .k-node__title {
@@ -77,23 +76,23 @@ const toneStyle = computed(() => {
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.2;
-  color: var(--card-fg);
+  color: #fff;
 }
 
 .k-node__sub {
   margin-top: 8px;
   font-size: 12.5px;
   line-height: 1.45;
-  color: var(--card-muted);
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .k-handle {
   width: 18px !important;
   height: 4px !important;
   border-radius: 2px !important;
-  background: #94a3b8 !important;
+  background: rgba(255, 255, 255, 0.45) !important;
   border: none !important;
-  opacity: 0.85;
+  opacity: 1;
   pointer-events: none !important;
 }
 </style>

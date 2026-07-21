@@ -36,9 +36,11 @@
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --vf-handle: #94a3b8;
   --vf-connection-path: #94a3b8;
+  --edge-stroke: #94a3b8;
+  --edge-opacity: 0.78;
 }
 
-/* 黑天：锌黑底 + 冰蓝强调（不用绿色），网格靠 --grid 提亮 */
+/* 黑天：锌黑底 + 冰蓝强调；网格/边线压暗，避免发白刺眼 */
 [data-theme='dark'] {
   color-scheme: dark;
   --ink: #09090b;
@@ -47,26 +49,28 @@
   --canvas: #0c0c0f;
   --mist: #f4f4f5;
   --mist-dim: #a1a1aa;
-  --accent: #38bdf8;
-  --accent-soft: rgba(56, 189, 248, 0.16);
-  --signal: #7dd3fc;
+  --accent: #0ea5e9;
+  --accent-soft: rgba(14, 165, 233, 0.14);
+  --signal: #38bdf8;
   --amber: #fb923c;
-  --line: rgba(255, 255, 255, 0.1);
+  --line: rgba(255, 255, 255, 0.08);
   --glass: rgba(24, 24, 27, 0.92);
   --shadow: 0 20px 48px rgba(0, 0, 0, 0.55);
   --shadow-node: 0 14px 36px rgba(0, 0, 0, 0.5);
   --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.4);
   --node-title: #fafafa;
-  --chapter-bg: rgba(39, 39, 42, 0.42);
-  --chapter-border: rgba(161, 161, 170, 0.55);
-  --label-bg: #27272a;
-  --label-fg: #d4d4d8;
+  --chapter-bg: rgba(39, 39, 42, 0.35);
+  --chapter-border: rgba(113, 113, 122, 0.38);
+  --label-bg: #18181b;
+  --label-fg: #a1a1aa;
   --label-border: #3f3f46;
   --panel-bg: #111113;
-  --grid: #71717a;
+  --grid: rgba(161, 161, 170, 0.16);
+  --edge-stroke: #52525b;
+  --edge-opacity: 0.48;
   --topbar-bg: rgba(9, 9, 11, 0.9);
-  --vf-handle: #71717a;
-  --vf-connection-path: #71717a;
+  --vf-handle: #52525b;
+  --vf-connection-path: #52525b;
 }
 
 *,
