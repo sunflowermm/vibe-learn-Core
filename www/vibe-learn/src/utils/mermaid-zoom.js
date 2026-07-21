@@ -31,13 +31,17 @@ export function applyMermaidTransform(frame, scale, tx = 0, ty = 0) {
 export function enhanceMermaidFrames(root) {
   if (!root) return;
 
-  const diagrams = [...root.querySelectorAll('.mermaid')].filter(
-    (el) => el.getAttribute('data-processed') === 'true' || el.querySelector('svg')
+  const diagrams = [...root.querySelectorAll('pre.mermaid')].filter(
+    (el) =>
+      el.getAttribute('data-processed') === 'true' ||
+      el.querySelector('svg') ||
+      /Syntax error/i.test(el.textContent || '')
   );
 
   for (const el of diagrams) {
     if (el.closest('.mermaid-frame')) continue;
 
+    const broken = /Syntax error/i.test(el.textContent || '');
     const frame = document.createElement('div');
     frame.className = 'mermaid-frame';
     frame.dataset.scale = '1';
@@ -47,7 +51,7 @@ export function enhanceMermaidFrames(root) {
     const bar = document.createElement('div');
     bar.className = 'mermaid-frame__bar';
     bar.innerHTML = `
-      <span class="mermaid-frame__label">示意图</span>
+      <span class="mermaid-frame__label">${broken ? '示意图（语法待修）' : '示意图'}</span>
       <div class="mermaid-frame__ops">
         <button type="button" class="mermaid-frame__btn" data-mz="out" data-no-blobity aria-label="缩小" title="缩小">−</button>
         <span class="mermaid-frame__pct" aria-live="polite">100%</span>

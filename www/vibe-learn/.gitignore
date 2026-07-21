@@ -3,3 +3,6 @@ dist/
 .vite/
 *.local
 .DS_Store
+
+# 本地排查脚本，不入库
+scripts/

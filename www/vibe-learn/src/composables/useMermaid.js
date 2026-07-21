@@ -1,15 +1,15 @@
 /**
- * 惰性加载 Mermaid（pnpm / 国内 registry 安装，随 Vite 打包）。
- * 主题跟随 document.documentElement[data-theme]。
+ * 惰性加载 Mermaid（随 Vite 打包）。主题跟随 document.documentElement[data-theme]。
  */
 import { enhanceMermaidFrames } from '../utils/mermaid-zoom.js';
+import { normalizeMermaidSource } from '../utils/normalize-mermaid.js';
 
 let mermaidPromise = null;
 let lastTheme = null;
 
-async function loadMermaid() {
+function loadMermaid() {
   if (!mermaidPromise) {
-    mermaidPromise = import('mermaid').then((m) => m.default);
+    mermaidPromise = import('mermaid').then((m) => m.default ?? m);
   }
   return mermaidPromise;
 }
@@ -23,12 +23,18 @@ function isDarkTheme() {
  */
 export async function renderMermaidIn(root) {
   if (!root) return;
+
   const nodes = [...root.querySelectorAll('pre.mermaid')].filter(
     (el) => !el.getAttribute('data-processed')
   );
+
   if (!nodes.length) {
     enhanceMermaidFrames(root);
     return;
+  }
+
+  for (const el of nodes) {
+    el.textContent = normalizeMermaidSource(el.textContent);
   }
 
   const mermaid = await loadMermaid();
@@ -36,17 +42,19 @@ export async function renderMermaidIn(root) {
   if (theme !== lastTheme) {
     mermaid.initialize({
       startOnLoad: false,
-      securityLevel: 'strict',
+      securityLevel: 'loose',
       theme,
       fontFamily: 'inherit',
+      flowchart: { htmlLabels: true, curve: 'basis' },
     });
     lastTheme = theme;
   }
 
   try {
-    await mermaid.run({ nodes });
+    await mermaid.run({ nodes, suppressErrors: true });
   } catch (err) {
     console.warn('[vibe-learn] Mermaid 渲染失败', err);
   }
+
   enhanceMermaidFrames(root);
 }

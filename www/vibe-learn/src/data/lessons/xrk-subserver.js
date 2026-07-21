@@ -1,0 +1,76 @@
+/** 子服务端 · 多语言进程族 */
+export default `# 子服务端
+
+> 子服务端是主服旁的**独立进程族**，各自以不同语言实现同一套 HTTP 契约。  
+> 内置六套 runtime（默认端口 8000–8005）：Python、Go、PHP、Java、.NET、Rust。  
+> **配置在主服编辑，子服只读。** LLM 与 AiWorkflow 仅运行于主服 Node。
+
+## 与前面章节的对应
+
+| 已学概念 | 落点 |
+|----------|------|
+| **进程** | 主服与各子服为不同 OS 进程 |
+| **端口 / TCP** | 每套 runtime 默认监听独立端口 |
+| **HTTP / API** | \`AgentRuntime.callSubserver\` 以 HTTP JSON 调用目标 runtime |
+| **反向代理** | 对外入口通常在主服；子服部署于内网侧 |
+| **语言栈** | 按生态与性能优势选择 runtime |
+| **插件式扩展** | \`apis/<group>/\`（及各语言等价布局）可插拔 |
+| **配置归属** | \`ai-workflow.yaml\` → \`runtimeConfig.subserver\` |
+
+\`\`\`mermaid
+sequenceDiagram
+  participant U as 用户
+  participant M as 主服 Node
+  participant S as 子服 runtime
+  U->>M: 消息 / HTTP
+  M->>S: callSubserver path + runtime
+  S-->>M: JSON 结果
+  M-->>U: 回复
+\`\`\`
+
+---
+
+## Runtime 目录对照
+
+权威登记表：\`src/utils/subserver-runtimes.js\`。
+
+| id | 语言 | 默认端口 | 目录 | 选型要点 |
+|----|------|----------|------|----------|
+| \`pyserver\` | Python | 8000 | \`subserver/pyserver\` | AI / 媒体 / 文档生态；默认入口 |
+| \`goserver\` | Go | 8001 | \`subserver/goserver\` | 高并发、静态部署、加解密 |
+| \`phpserver\` | PHP | 8002 | \`subserver/phpserver\` | 轻量脚本与字符串处理 |
+| \`jserver\` | Java / Spring | 8003 | \`subserver/jserver\` | 企业库、JDBC、Spring |
+| \`netserver\` | .NET | 8004 | \`subserver/netserver\` | Windows / Office / 系统 API |
+| \`rustserver\` | Rust | 8005 | \`subserver/rustserver\` | 性能热点、正则、FFI |
+
+语言优势的完整对照见 **语言栈**。调用时传入 \`runtime\`；省略则使用 \`subserver.default\`（默认为 \`pyserver\`）。
+
+---
+
+## 设计目标
+
+| 目标 | 说明 |
+|------|------|
+| **卸载重活** | 大文件、长任务、重 CPU 工作离开主服事件循环 |
+| **生态互补** | 各语言在媒体、企业中间件、系统集成、性能路径上各有优势 |
+| **故障隔离** | 单一 runtime 异常不影响主服通道与其它子服 |
+| **职责清晰** | 主服专注编排与 LLM；子服专注实现层能力 |
+
+---
+
+## 能力与运维边界
+
+| 能力 | 说明 |
+|------|------|
+| **统一契约** | \`CONTRACT.md\`：\`/health\`、\`/api/list\`、\`/api/system/*\`、\`/api/{group}/*\` |
+| **配置中枢** | 主服维护 \`subserver.runtimes.*.host|port|enabled\`；子服 \`load_plugin_config\` 只读 |
+| **主服扫描** | \`subserver/*/apis/<group>/core/{plugin,http,commonconfig…}\` 可由主服 Loader 加载 |
+| **运维入口** | 命令在对应子服终端 \`子服>\` 输入，不经主服 stdin 转发 |
+
+参考：\`docs/subserver-api.md\`、\`docs/subserver-commonconfig.md\`、\`subserver/README.md\`。
+
+## 下一步
+
+对话与工具链 → **Stream**（可经工具调用子服）；  
+配置细则 → **配置归属**；AI 概念时间线 → 第五章。
+`;

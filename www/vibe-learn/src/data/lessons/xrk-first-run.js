@@ -11,7 +11,7 @@ export default `# 首次跑通 · XRK-AGT
 | **标准路径** | 版本 → 工作区 → install → 启动 |
 | **倒推表** | 症状对应哪一层 |
 | **和第四章的衔接** | 起跑线 vs 架构 |
-| **可选分支** | Docker / 子服务（点到为止） |
+| **可选分支** | Docker / 多语言子服（点到为止） |
 
 ---
 
@@ -19,10 +19,10 @@ export default `# 首次跑通 · XRK-AGT
 
 \`\`\`mermaid
 flowchart TB
-  A[node -v 符合 engines] --> B[位于仓库根目录]
-  B --> C[pnpm install]
-  C --> D[node app / 文档入口]
-  D --> E[打开控制台 / 健康检查]
+  A["node -v 符合 engines"] --> B[位于仓库根目录]
+  B --> C["pnpm install"]
+  C --> D["node app / 文档入口"]
+  D --> E["打开控制台 / 健康检查"]
 \`\`\`
 
 \`\`\`bash
@@ -75,15 +75,15 @@ Redis 等基础设施：框架启动链会探测/尝试拉起；配置见仓库 
 
 | 第一章（本课） | 第四章 · 项目实践 |
 |----------------|-------------------|
-| 保证起跑线 | 讲 Runtime / Core / HTTP / 配置 |
-| \`node app\` 能起来 | 代码放哪、配置如何归属 |
+| 保证起跑线 | 讲 Runtime / Core / HTTP / **多语言子服** / 配置 |
+| \`node app\` 能起来 | 代码放哪、配置如何归属、\`callSubserver\` |
 
 跑通之后，进入 **第四章 · XRK-AGT（项目实践）**，从「项目鸟瞰」开始。
 
-## 4. 可选分支（本图不展开）
+## 4. 可选分支（本课不展开）
 
-- **Docker Compose**：用容器打包运行时与依赖，本机少装工具链  
-- **子服务（Python 等）**：主服可先独立跑；扩展能力再按文档启用  
+- **Docker Compose**：以容器打包运行时与依赖  
+- **子服务**：主服可独立运行；按需启动 \`pyserver\` / \`goserver\` / \`phpserver\` / \`jserver\` / \`netserver\` / \`rustserver\`（默认端口 8000–8005，见 \`subserver/LANGUAGES.md\`）  
 
-先完成本机最小路径，再按需进入分支——这是「以小见大」在工程上的用法。
+建议先完成主服最小路径，再启用子服分支。
 `;

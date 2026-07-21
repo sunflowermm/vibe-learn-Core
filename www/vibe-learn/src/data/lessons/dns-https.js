@@ -56,9 +56,9 @@ export default `# HTTPS 与 DNS
 
 \`\`\`mermaid
 sequenceDiagram
-  participant U as 你/浏览器
+  participant U as "你/浏览器"
   participant C as 本地缓存
-  participant D as 本地 DNS
+  participant D as "本地 DNS"
   participant A as 权威服务器
   U->>C: 查 example.com
   alt 缓存命中

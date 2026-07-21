@@ -19,15 +19,15 @@ export default `# 软硬件联动
 
 \`\`\`mermaid
 sequenceDiagram
-  participant F as 手指 / 键盘
+  participant F as "手指 / 键盘"
   participant UI as 图形界面
   participant App as 应用
   participant OS as 操作系统
   participant HW as 硬件
   F->>UI: 点击「打开」
   UI->>App: 输入事件
-  App->>OS: 要内存 / 窗口 / 网络
-  OS->>HW: 调度 CPU · 驱动设备
+  App->>OS: 要内存、窗口、网络
+  OS->>HW: 调度 CPU，驱动设备
   HW-->>OS: 电平与中断
   OS-->>App: 系统调用返回
   App-->>UI: 画出窗口

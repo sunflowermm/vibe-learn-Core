@@ -1,9 +1,12 @@
 /**
  * 课文渲染：Markdown + HTML5/SVG 片段 + Mermaid 围栏
- * Mermaid 经 pnpm（国内镜像 registry）打包进产物，不依赖外网 CDN。
+ * Mermaid 随 Vite/pnpm 打包，不依赖外网 CDN。
  */
 import { marked } from 'marked';
-import DOMPurify from 'dompurify';
+import purify from 'dompurify';
+import { normalizeMermaidSource } from './normalize-mermaid.js';
+
+const DOMPurify = purify?.sanitize ? purify : purify?.default ?? purify;
 
 const RAW_LANGS = new Set(['html', 'html5', 'svg', 'raw']);
 
@@ -23,7 +26,8 @@ renderer.code = function code(token) {
   const text = token.text ?? '';
 
   if (lang === 'mermaid') {
-    return `<pre class="mermaid">${escapeHtml(text)}</pre>`;
+    /* 规范化后整体转义；浏览器 textContent 还原 <br/> 给 Mermaid */
+    return `<pre class="mermaid">${escapeHtml(normalizeMermaidSource(text))}</pre>`;
   }
   if (RAW_LANGS.has(lang)) {
     return `<div class="lesson-embed" data-embed="${lang}">${text}</div>`;
@@ -123,13 +127,12 @@ const PURIFY = {
 
 /**
  * @param {string} markdown
- * @returns {string} 消毒后的 HTML（含未渲染的 .mermaid 节点）
+ * @returns {string} 消毒后的 HTML（含未渲染的 pre.mermaid）
  */
 export function renderLesson(markdown) {
   if (!markdown) return '';
   const raw = marked.parse(markdown, { async: false });
   const clean = DOMPurify.sanitize(raw, PURIFY);
-  /* 表格外包一层，便于边框与横向滚动，避免贴边裁切 */
   return clean.replace(/<table[\s\S]*?<\/table>/gi, (table) => {
     return `<div class="md-table-wrap">${table}</div>`;
   });

@@ -439,7 +439,7 @@ export const GLOSSARY = {
   plugin: {
     term: '插件（Plugin）',
     brief: '挂到运行时上的可加载能力模块，常响应消息或事件。',
-    also: ['xrk-core-layout'],
+    also: ['xrk-plugin-arch', 'xrk-core-layout'],
   },
   www_static: {
     term: 'www（静态前端）',
@@ -459,7 +459,209 @@ export const GLOSSARY = {
   loader: {
     term: 'Loader（加载器）',
     brief: '框架扫描 core/*/ 约定目录（plugin、http、www…）并挂到 Runtime 上的机制。',
-    also: ['xrk-runtime', 'xrk-core-layout'],
+    also: ['xrk-runtime', 'xrk-core-layout', 'xrk-plugin-arch'],
+  },
+  plugin_arch: {
+    term: '插件式架构',
+    brief: '用约定目录 + 基类 + Loader 扩展能力，业务不改内核。',
+    also: ['xrk-plugin-arch', 'xrk-core-layout'],
+  },
+  subserver: {
+    term: '子服务端',
+    brief: '主服旁的多语言进程族（Python/Go/PHP/Java/.NET/Rust），经 callSubserver 以 HTTP JSON 调用；配置由主服编辑、子服只读。',
+    also: ['xrk-subserver', 'xrk-language-stack'],
+  },
+  subserver_runtimes: {
+    term: '子服 runtime 目录',
+    brief: '内置六套：pyserver(:8000)、goserver、phpserver、jserver、netserver、rustserver。登记于 src/utils/subserver-runtimes.js；子服侧不设 Node runtime。',
+    also: ['xrk-language-stack', 'xrk-subserver', 'lang-landscape'],
+  },
+  python_runtime: {
+    term: 'pyserver（默认子服）',
+    brief: 'Python 子服，默认端口 8000；AI/媒体/文档生态成熟，为默认入口。另有 Go/PHP/Java/.NET/Rust 等 runtime 可并存。',
+    also: ['xrk-language-stack', 'xrk-subserver', 'lang-landscape'],
+  },
+  call_subserver: {
+    term: 'callSubserver',
+    brief: 'AgentRuntime 调用子服的 HTTP JSON 接口；可指定 runtime，未指定则使用 subserver.default。',
+    also: ['xrk-subserver', 'xrk-runtime', 'xrk-language-stack'],
+  },
+
+  /* —— 第四章 · Stream / AI —— */
+  ai_workflow: {
+    term: 'AiWorkflow',
+    brief: 'XRK 对话工作流基类：组上下文、调 LLM、经 tool calling 跑 MCP 工具。',
+    also: ['xrk-stream', 'ai-mcp'],
+  },
+  stream_wf: {
+    term: 'stream / streams',
+    brief: '对话请求里选定的工作流名白名单，用来限制本轮可用的工具集合。',
+    also: ['xrk-stream'],
+  },
+  ai: {
+    term: '人工智能（AI）',
+    brief: '让机器表现出智能行为的学科与技术总称；1956 年达特茅斯会议正式命名。',
+    also: ['ai-what'],
+  },
+  ml: {
+    term: '机器学习（ML）',
+    brief: '从数据中学习规律，而不是把所有规则手写死。深度学习是其重要分支。',
+    also: ['ai-what'],
+  },
+  llm: {
+    term: '大语言模型（LLM）',
+    brief: '用海量文本训练、能理解和生成自然语言的神经网络模型（如 GPT、Claude）。',
+    also: ['ai-what', 'ai-openai-protocol', 'xrk-stream', 'ai-transformer'],
+  },
+  embedding_model: {
+    term: '嵌入模型（Embedding）',
+    brief: '把文本变成向量，方便按「意思相近」检索；RAG 索引常用它。',
+    also: ['ai-model-types', 'ai-rag'],
+  },
+  multimodal: {
+    term: '多模态模型',
+    brief: '能同时处理文本以外的模态（图像、音频等）的模型。',
+    also: ['ai-model-types'],
+  },
+  transformer: {
+    term: 'Transformer',
+    brief: '2017 年提出的注意力架构；当代多数 LLM 的主干结构。',
+    also: ['ai-transformer', 'ai-arch-beyond'],
+  },
+  attention: {
+    term: '自注意力（Self-Attention）',
+    brief: '让序列中任意位置互相加权聚合信息；Transformer 的核心机制。',
+    also: ['ai-transformer'],
+  },
+  cnn: {
+    term: 'CNN（卷积神经网络）',
+    brief: '擅长抓局部图案，经典用于视觉任务；深度学习重要家族之一。',
+    also: ['ai-arch-beyond'],
+  },
+  rnn: {
+    term: 'RNN / LSTM',
+    brief: '按时间步处理序列的早期主流架构；长依赖与并行是痛点。',
+    also: ['ai-arch-beyond'],
+  },
+  moe: {
+    term: 'MoE（混合专家）',
+    brief: '参数总量大，但每次只激活部分专家子网络，兼顾规模与算力。',
+    also: ['ai-arch-beyond'],
+  },
+  finetune: {
+    term: '微调（Fine-tuning）',
+    brief: '在预训练基座上再用专项数据继续训练，适配对话、领域或工具行为。',
+    also: ['ai-finetune'],
+  },
+  sft: {
+    term: 'SFT（监督微调）',
+    brief: '用「问→答」示范数据教会模型格式与任务，常见微调第一步。',
+    also: ['ai-finetune'],
+  },
+  lora: {
+    term: 'LoRA',
+    brief: '参数高效微调：少改参数就能适配任务，省显存与成本。',
+    also: ['ai-finetune'],
+  },
+  rlhf: {
+    term: 'RLHF / 对齐',
+    brief: '按人类偏好调整模型行为（含 DPO 等变体），减少胡话、提高听劝。',
+    also: ['ai-finetune'],
+  },
+  rag: {
+    term: 'RAG',
+    brief: '检索增强生成：先检索相关文档片段，再让模型基于证据回答。',
+    also: ['ai-rag', 'ai-rag-shift'],
+  },
+  agentic_rag: {
+    term: 'Agentic RAG',
+    brief: '由 Agent 多轮决定检索什么、是否再检索；检索成为可调用工具。',
+    also: ['ai-agentic-rag', 'ai-rag'],
+  },
+  long_context: {
+    term: '长上下文',
+    brief: '模型单次可吞下很长输入；小而稳的知识有时可不经向量库直接塞进提示。',
+    also: ['ai-rag-shift'],
+  },
+  dartmouth: {
+    term: '达特茅斯会议（1956）',
+    brief: 'AI 学科的「出生证明」：McCarthy 等命名 Artificial Intelligence 并召开暑期研讨。',
+    also: ['ai-what'],
+  },
+  agent_concept: {
+    term: 'Agent（智能体）',
+    brief: '不止聊天：带目标、能调工具、根据结果继续行动的 AI 程序形态。',
+    also: ['ai-what', 'ai-tool-calling', 'ai-subagent'],
+  },
+  openai_compat: {
+    term: 'OpenAI 兼容协议',
+    brief: '以 /v1/chat/completions + messages 为代表的事实标准 API 形状；换 base_url 常可换模型。',
+    also: ['ai-openai-protocol', 'xrk-stream'],
+  },
+  chat_completions: {
+    term: 'Chat Completions',
+    brief: 'OpenAI 的多轮对话端点形态：消息数组进，assistant（或 tool_calls）出；生态最广。',
+    also: ['ai-openai-protocol'],
+  },
+  messages_api: {
+    term: 'Messages API 等原生方言',
+    brief: '厂商自有推理接口（如 Anthropic Messages、OpenAI Responses）：能力更完整，兼容面较窄。',
+    also: ['ai-openai-protocol'],
+  },
+  a2a: {
+    term: 'A2A / ACP',
+    brief: 'Agent 之间互相发现与委派任务的协作协议层；与 MCP（接工具）不是同一层。',
+    also: ['ai-openai-protocol', 'ai-mcp'],
+  },
+  function_calling: {
+    term: 'Function Calling',
+    brief: '2023 年兴起的能力：模型输出结构化函数名与参数，由应用执行后再回灌。',
+    also: ['ai-tool-calling'],
+  },
+  tool_calling: {
+    term: 'Tool Calling',
+    brief: 'Function calling 的泛化说法：tools / tool_calls；模型点菜，程序下厨。',
+    also: ['ai-tool-calling', 'ai-mcp', 'xrk-stream'],
+  },
+  json_schema: {
+    term: 'JSON Schema',
+    brief: '用 JSON 描述「参数长什么样」的契约；工具定义常靠它约束模型填参。',
+    also: ['ai-tool-calling'],
+  },
+  mcp: {
+    term: 'MCP（Model Context Protocol）',
+    brief: 'Anthropic 2024 开源的标准：AI 宿主如何发现并调用外部工具/资源；类似 AI 的 USB-C。',
+    also: ['ai-mcp', 'xrk-stream'],
+  },
+  json_rpc: {
+    term: 'JSON-RPC',
+    brief: '基于 JSON 的远程过程调用约定；MCP 常用它在客户端与 Server 之间传方法调用。',
+    also: ['ai-mcp'],
+  },
+  lsp: {
+    term: 'LSP（语言服务器协议）',
+    brief: '编辑器与语言服务之间的标准；MCP 的「一种协议多种客户端」思路受其启发。',
+    also: ['ai-mcp'],
+  },
+  agent_skills: {
+    term: 'Agent Skills',
+    brief: '按需加载的流程包（SKILL.md + 可选脚本/参考）；相关才展开，省上下文。',
+    also: ['ai-skills'],
+  },
+  agent_rules: {
+    term: 'Rules（规则）',
+    brief: '给 Agent 的常驻或按文件匹配的硬约束（风格、禁区、安全红线）；宜短不宜塞手册。',
+    also: ['ai-rules'],
+  },
+  subagent: {
+    term: '子代理（Subagent）',
+    brief: '主代理委派的、上下文相对隔离的专项工人（审查、探索、并行调查）。',
+    also: ['ai-subagent'],
+  },
+  agents_md: {
+    term: 'AGENTS.md',
+    brief: '写给编程 Agent 的项目说明书（栈、命令、边界）；多种工具都能读。',
+    also: ['ai-agents-md', 'xrk-overview'],
   },
 
   /* —— 番外 · Clash —— */
