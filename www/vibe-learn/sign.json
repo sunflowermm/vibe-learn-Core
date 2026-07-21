@@ -1,7 +1,10 @@
 {
   "id": "vibe-learn",
   "name": "Vibe Learn — 知识节点图谱",
-  "enabled": true,
+  "enabled": false,
+  "serve": "static",
+  "staticRoot": "dist",
+  "_note": "静态托管 dist/。HMR：serve 改 proxy、enabled 改 true，重启主服。",
   "mode": "dev",
   "command": "pnpm",
   "args": ["dev"],

@@ -16,3 +16,13 @@
 4. 换电脑或清站点数据会丢库；请用顶栏「书架 → 导出备份」保存 JSON。
 
 实现：`src/utils/user-store.js`、`src/composables/useUserLibrary.js`。
+
+---
+
+## 静态托管（默认）
+
+本目录是**前端工程**（有 `sign.json`），规则见仓库 [docs/www-mount.md](../../../../docs/www-mount.md)。
+
+- `sign.json`：`serve: "static"` + `enabled: false` + `staticRoot: "dist"`；URL=`proxy.mount`（`/vibe-learn`）。
+- 主服挂 `dist/`；**重启主服不必再 build**。改课/改 UI 后本目录 `pnpm build`。
+- HMR：`serve` → `proxy`，`enabled` → `true`，再重启主服。
