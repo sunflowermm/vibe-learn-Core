@@ -130,7 +130,6 @@ function onNodeClick({ node }) {
   if (dragMoved) return;
   if (node.type === 'chapter') return;
   emit('select', node.id);
-  focusNeighborhood(node.id);
 }
 
 function onPaneClick() {
@@ -143,24 +142,9 @@ function onPaneClick() {
 function onEdgeClick({ edge }) {
   if (dragMoved) return;
   const a = props.activeId;
-  let next;
-  if (a === edge.source) next = edge.target;
-  else if (a === edge.target) next = edge.source;
-  else next = edge.target;
-  emit('select', next);
-  focusNeighborhood(next);
-}
-
-function focusNeighborhood(id) {
-  if (!id) return;
-  nextTick(() => {
-    fitView({
-      nodes: [...neighborIds(id)],
-      padding: 0.34,
-      duration: 360,
-      maxZoom: 1.08,
-    });
-  });
+  if (a === edge.source) emit('select', edge.target);
+  else if (a === edge.target) emit('select', edge.source);
+  else emit('select', edge.target);
 }
 
 function onNodeMouseEnter({ node }) {
