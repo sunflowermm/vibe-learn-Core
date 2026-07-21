@@ -324,6 +324,30 @@ body.is-resizing-row * {
     border-left: none;
     border-top: 1px solid var(--line);
   }
+
+  /* 分隔条加大触控热区，方便调图谱/讲解高度 */
+  .split-handle--row {
+    height: 22px;
+  }
+
+  .split-handle--row::after {
+    width: 56px;
+    height: 4px;
+  }
+
+  .topbar {
+    padding-top: max(0.65rem, env(safe-area-inset-top));
+  }
+
+  .topbar-meta {
+    display: none;
+  }
+
+  .theme-toggle,
+  .shelf-launch {
+    min-height: 36px;
+    touch-action: manipulation;
+  }
 }
 
 .graph-pane {

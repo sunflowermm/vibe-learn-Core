@@ -252,11 +252,17 @@
     background 0.15s ease;
 }
 
-.md .mermaid-frame__btn[data-mz='reset'] {
+.md .mermaid-frame__btn[data-mz='reset'],
+.md .mermaid-frame__btn[data-mz='copy'] {
   width: auto;
   padding: 0 0.45rem;
   font-family: var(--font-mono);
   font-size: 0.68rem;
+}
+
+.md .mermaid-frame__btn.is-copied {
+  border-color: color-mix(in srgb, #22c55e 55%, transparent);
+  color: #16a34a;
 }
 
 .md .mermaid-frame__btn:hover {
@@ -271,11 +277,20 @@
   cursor: grab;
   outline: none;
   overscroll-behavior: contain;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .md .mermaid-frame__view.is-panning,
+.md .mermaid-frame.is-panning .mermaid-frame__view,
 .md .mermaid-frame__view:active {
   cursor: grabbing;
+}
+
+.md .mermaid-frame.is-panning .mermaid-frame__stage {
+  transition: none;
 }
 
 .md .mermaid-frame__stage {
@@ -287,6 +302,8 @@
   width: max-content;
   min-width: 100%;
   box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .md .mermaid-frame .mermaid,
@@ -298,11 +315,23 @@
   overflow: visible;
   text-align: center;
   line-height: 1.2;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.md .mermaid-frame .mermaid svg,
+.md .mermaid-frame .mermaid svg *,
+.md .mermaid-frame .mermaid foreignObject,
+.md .mermaid-frame .mermaid foreignObject * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
 }
 
 .md .mermaid-frame .mermaid svg {
   max-width: none;
   height: auto;
+  /* 事件落到 view 上，拖拽不跟文字抢 */
+  pointer-events: none;
 }
 
 .md .lesson-embed {

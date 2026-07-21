@@ -3,7 +3,7 @@ import { VueFlow, useVueFlow, ConnectionMode } from '@vue-flow/core';
 import { Background } from '@vue-flow/background';
 import { Controls } from '@vue-flow/controls';
 import { MiniMap } from '@vue-flow/minimap';
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import ChapterFrame from './ChapterFrame.vue';
 import GraphCard from './GraphCard.vue';
 import RelationEdge from './RelationEdge.vue';
@@ -12,6 +12,7 @@ import {
   buildFlowNodes,
   getOriginPositions,
 } from '../data/nodes.js';
+import { isStackedLayout } from '../composables/usePanelResize.js';
 
 const props = defineProps({
   activeId: { type: String, default: null },
@@ -28,14 +29,68 @@ const emit = defineEmits(['select', 'clear']);
 
 const { fitView } = useVueFlow();
 
+/** 窄屏 / 手机：禁止拖方块，只允许点选 + 画布平移缩放 */
+const nodesDraggable = ref(typeof window === 'undefined' ? true : !isStackedLayout());
+
+function syncNodesDraggableFlag() {
+  nodesDraggable.value = !isStackedLayout();
+}
+
+function applyNodeDragLock() {
+  const ok = nodesDraggable.value;
+  for (const n of nodes.value) {
+    if (n.draggable !== ok) n.draggable = ok;
+    if (n.type === 'chapter' || n.data?.kind === 'chapter') {
+      const handle = ok ? '.chapter__drag' : undefined;
+      if (n.dragHandle !== handle) n.dragHandle = handle;
+    }
+  }
+}
+
+const isMobileGraph = computed(() => !nodesDraggable.value);
+
+const miniWidth = computed(() => (isMobileGraph.value ? 128 : 172));
+const miniHeight = computed(() => (isMobileGraph.value ? 88 : 120));
+
 const nodes = ref(
-  buildFlowNodes().map((n) => ({
-    ...n,
-    selected: n.id === props.activeId,
-    class: '',
-  }))
+  buildFlowNodes().map((n) => {
+    const isChapter = n.type === 'chapter' || n.data?.kind === 'chapter';
+    return {
+      ...n,
+      selected: n.id === props.activeId,
+      class: '',
+      draggable: nodesDraggable.value,
+      dragHandle: isChapter && nodesDraggable.value ? '.chapter__drag' : undefined,
+    };
+  })
 );
 const edges = ref(buildFlowEdges());
+
+watch(nodesDraggable, applyNodeDragLock);
+
+let mobileMq = null;
+function onMobileMqChange() {
+  syncNodesDraggableFlag();
+}
+
+onMounted(() => {
+  try {
+    mobileMq = window.matchMedia('(max-width: 960px)');
+    mobileMq.addEventListener('change', onMobileMqChange);
+  } catch {
+    /* ignore */
+  }
+  syncNodesDraggableFlag();
+  applyNodeDragLock();
+});
+
+onUnmounted(() => {
+  try {
+    mobileMq?.removeEventListener('change', onMobileMqChange);
+  } catch {
+    /* ignore */
+  }
+});
 
 const nodeTypes = {
   knowledge: GraphCard,
@@ -261,12 +316,14 @@ function onNodeMouseLeave({ node }) {
 }
 
 function onNodeDragStart({ node }) {
+  if (!nodesDraggable.value) return;
   dragMoved = false;
   chapterDragOrigin =
     node.type === 'chapter' ? { x: node.position.x, y: node.position.y } : null;
 }
 
 function onNodeDrag({ node }) {
+  if (!nodesDraggable.value) return;
   dragMoved = true;
   if (node.type !== 'chapter' || !chapterDragOrigin) return;
   const dx = node.position.x - chapterDragOrigin.x;
@@ -332,7 +389,13 @@ function fitNeighborhood() {
 </script>
 
 <template>
-  <div class="graph-wrap" :class="{ 'has-focus': Boolean(activeId || hoverId) }">
+  <div
+    class="graph-wrap"
+    :class="{
+      'has-focus': Boolean(activeId || hoverId),
+      'is-mobile-graph': isMobileGraph,
+    }"
+  >
     <VueFlow
       v-model:nodes="nodes"
       v-model:edges="edges"
@@ -341,7 +404,8 @@ function fitNeighborhood() {
       :default-viewport="{ zoom: 0.52 }"
       :min-zoom="0.12"
       :max-zoom="1.9"
-      :nodes-draggable="true"
+      :nodes-draggable="nodesDraggable"
+      :node-drag-threshold="nodesDraggable ? 1 : 64"
       :nodes-connectable="false"
       :edges-updatable="false"
       :connection-mode="ConnectionMode.Loose"
@@ -351,6 +415,7 @@ function fitNeighborhood() {
       :multi-selection-key-code="null"
       :pan-on-drag="true"
       :zoom-on-scroll="true"
+      :zoom-on-pinch="true"
       :zoom-on-double-click="false"
       :prevent-scrolling="true"
       fit-view-on-init
@@ -372,8 +437,8 @@ function fitNeighborhood() {
         position="bottom-right"
         pannable
         zoomable
-        :width="172"
-        :height="120"
+        :width="miniWidth"
+        :height="miniHeight"
         :node-border-radius="6"
         :node-stroke-width="1.2"
         :node-color="miniNodeColor"
@@ -408,7 +473,12 @@ function fitNeighborhood() {
       </button>
     </div>
     <p class="graph-hint" aria-hidden="true">
-      点选点亮整章及跨章关联 · 悬停预览关系 · 点连线跳转
+      <template v-if="nodesDraggable">
+        点选点亮整章及跨章关联 · 悬停预览关系 · 点连线跳转
+      </template>
+      <template v-else>
+        点选 · 拖动画布 · 双指缩放
+      </template>
     </p>
   </div>
 </template>
@@ -419,6 +489,77 @@ function fitNeighborhood() {
   width: 100%;
   height: 100%;
   background: var(--canvas);
+}
+
+/* 手机：方块不进拖拽态，触摸在节点上也能平移画布 */
+.graph-wrap.is-mobile-graph :deep(.vue-flow__node) {
+  cursor: pointer;
+}
+
+.graph-wrap.is-mobile-graph :deep(.vue-flow__node.dragging) {
+  cursor: pointer;
+}
+
+.graph-wrap.is-mobile-graph :deep(.vue-flow__node-chapter .chapter__drag) {
+  cursor: pointer;
+}
+
+.graph-wrap.is-mobile-graph :deep(.vue-flow__node-chapter .chapter__drag-tip) {
+  display: none;
+}
+
+.graph-wrap.is-mobile-graph :deep(.vue-flow__controls) {
+  margin: 10px;
+  border-radius: 14px;
+}
+
+.graph-wrap.is-mobile-graph :deep(.vue-flow__controls-button) {
+  width: 36px;
+  height: 36px;
+}
+
+.graph-wrap.is-mobile-graph :deep(.vue-flow__minimap) {
+  width: 128px !important;
+  height: 88px !important;
+  margin: 10px;
+  border-radius: 12px;
+}
+
+.graph-wrap.is-mobile-graph :deep(.vue-flow__minimap::after) {
+  display: none;
+}
+
+.graph-wrap.is-mobile-graph .graph-tools {
+  top: max(8px, env(safe-area-inset-top));
+  right: max(8px, env(safe-area-inset-right));
+  gap: 6px;
+}
+
+.graph-wrap.is-mobile-graph .graph-tool {
+  min-height: 36px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  touch-action: manipulation;
+}
+
+.graph-wrap.is-mobile-graph .graph-hint {
+  /* 避开底部 controls / minimap */
+  bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 24px);
+  font-size: 10px;
+  padding: 4px 10px;
+}
+
+.graph-wrap.is-mobile-graph :deep(.vue-flow__node .card:hover) {
+  transform: none;
+}
+
+.graph-wrap.is-mobile-graph :deep(.vue-flow__node-chapter .chapter__head:hover) {
+  transform: none;
 }
 
 .graph-wrap :deep(.vue-flow__edges) {

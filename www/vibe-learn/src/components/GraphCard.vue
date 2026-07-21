@@ -99,6 +99,13 @@ const toneStyle = computed(() => ({
     0 16px 40px rgba(0, 0, 0, 0.35);
 }
 
+@media (max-width: 960px) {
+  .card:hover {
+    transform: none;
+    box-shadow: var(--shadow-node);
+  }
+}
+
 .card.selected {
   filter: brightness(1.04);
   box-shadow:

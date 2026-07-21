@@ -14,7 +14,7 @@ const lit = computed(() => Boolean(props.data?.lit) || props.selected);
   <div class="chapter" :class="{ selected: lit }">
     <header
       class="chapter__head chapter__drag"
-      title="拖标题条才移动整章；拖知识点卡片只动自己"
+      title="桌面端：拖此条移动整章"
       data-blobity
     >
       <span class="chapter__tag">{{ data.tag }}</span>
@@ -117,5 +117,19 @@ const lit = computed(() => Boolean(props.data?.lit) || props.selected);
   font-family: var(--font-mono);
   font-size: 10px;
   color: rgba(255, 255, 255, 0.8);
+}
+
+@media (max-width: 960px) {
+  .chapter__drag-tip {
+    display: none;
+  }
+
+  .chapter__head {
+    cursor: pointer;
+  }
+
+  .chapter__head:hover {
+    transform: none;
+  }
 }
 </style>

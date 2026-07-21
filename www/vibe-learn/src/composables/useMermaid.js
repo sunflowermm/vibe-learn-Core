@@ -34,7 +34,9 @@ export async function renderMermaidIn(root) {
   }
 
   for (const el of nodes) {
-    el.textContent = normalizeMermaidSource(el.textContent);
+    const src = normalizeMermaidSource(el.textContent);
+    el.textContent = src;
+    el.setAttribute('data-mermaid-source', src);
   }
 
   const mermaid = await loadMermaid();
