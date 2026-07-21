@@ -37,6 +37,7 @@ const text = computed(() => props.label || props.data?.label || '');
 const stroke = computed(() => props.data?.color || 'var(--edge-stroke)');
 const isSide = computed(() => props.data?.branch === 'side');
 const isPreview = computed(() => Boolean(props.data?.preview));
+const isChapterLit = computed(() => Boolean(props.data?.chapterLit));
 const routeOffset = computed(() => Number(props.data?.routeOffset) || 0);
 const pathKind = computed(() => props.data?.pathKind || 'smoothstep');
 const showLabel = computed(
@@ -45,22 +46,27 @@ const showLabel = computed(
     (props.selected || isPreview.value || hovered.value)
 );
 
-const pathStyle = computed(() => {
-  const active = props.selected || isPreview.value || hovered.value;
-  return {
-    stroke: stroke.value,
-    strokeWidth: props.selected ? 2.75 : active ? 2.2 : 'var(--edge-width)',
-    strokeDasharray: isSide.value ? '4 6' : '7 5',
-    strokeOpacity: props.selected
-      ? 1
-      : isPreview.value || hovered.value
-        ? 0.9
+const pathStyle = computed(() => ({
+  stroke: stroke.value,
+  strokeWidth: props.selected
+    ? 2.75
+    : isPreview.value || hovered.value
+      ? 2.25
+      : isChapterLit.value
+        ? 2.1
+        : 'var(--edge-width)',
+  strokeDasharray: isSide.value ? '4 6' : '7 5',
+  strokeOpacity: props.selected
+    ? 1
+    : isPreview.value || hovered.value
+      ? 0.92
+      : isChapterLit.value
+        ? 0.85
         : isSide.value
           ? 'calc(var(--edge-opacity) * 0.65)'
           : 'var(--edge-opacity)',
-    ...(props.style || {}),
-  };
-});
+  ...(props.style || {}),
+}));
 
 function offsetEndpoints(ox, oy, tx, ty, offset) {
   if (!offset) return { sx: ox, sy: oy, ex: tx, ey: ty, dx: tx - ox, dy: ty - oy };
@@ -164,7 +170,7 @@ export default { inheritAttrs: false };
 <template>
   <g
     class="rel-edge"
-    :class="{ selected, animated, side: isSide, preview: isPreview, hovered }"
+    :class="{ selected, animated, side: isSide, preview: isPreview, hovered, chapter: isChapterLit }"
     @mouseenter="hovered = true"
     @mouseleave="hovered = false"
   >
@@ -179,7 +185,7 @@ export default { inheritAttrs: false };
       :id="id"
       :path="geometry.path"
       :style="pathStyle"
-      :class="{ selected, animated, side: isSide, preview: isPreview }"
+      :class="{ selected, animated, side: isSide, preview: isPreview, chapter: isChapterLit }"
     />
   </g>
   <EdgeLabelRenderer v-if="showLabel">

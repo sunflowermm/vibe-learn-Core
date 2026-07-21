@@ -65,16 +65,39 @@ function neighborIds(id) {
   return set;
 }
 
+function chapterIdOf(nodeId) {
+  if (!nodeId) return null;
+  const n = nodes.value.find((x) => x.id === nodeId);
+  return n?.data?.chapterId || null;
+}
+
+/** 同章全部 topic 节点 */
+function chapterMemberIds(chapterId) {
+  const set = new Set();
+  if (!chapterId) return set;
+  for (const n of nodes.value) {
+    if (n.data?.kind === 'topic' && n.data.chapterId === chapterId) {
+      set.add(n.id);
+    }
+  }
+  return set;
+}
+
 /**
- * 选中 → 高亮邻边并显示标签；悬停 → 预览邻边标签；其余节点弱化
+ * 点选 / 悬停 → 点亮所属整章节点，以及触及该章的全部连线；
+ * 关系文字仍只在「当前卡片相邻边」上显示，避免整章标签爆炸。
  */
 function syncHighlight(activeId, hoveredId) {
-  const activeN = neighborIds(activeId);
-  const hoverN = neighborIds(hoveredId);
-  const spotlight = new Set([...activeN, ...hoverN]);
-  const hasFocus = Boolean(activeId || hoveredId);
+  const focusId = activeId || hoveredId;
+  const chapterId = chapterIdOf(focusId);
+  const spotlight = chapterId
+    ? chapterMemberIds(chapterId)
+    : neighborIds(focusId);
+  const hasFocus = Boolean(focusId);
 
   for (const e of edges.value) {
+    const touchesChapter =
+      hasFocus && (spotlight.has(e.source) || spotlight.has(e.target));
     const onActive = Boolean(
       activeId && (e.source === activeId || e.target === activeId)
     );
@@ -83,24 +106,29 @@ function syncHighlight(activeId, hoveredId) {
     );
     if (e.selected !== onActive) e.selected = onActive;
     const preview = onHover && !onActive;
-    if (e.data?.preview !== preview) {
-      e.data = { ...(e.data || {}), preview };
+    const chapterLit = touchesChapter && !onActive && !preview;
+    if (e.data?.preview !== preview || e.data?.chapterLit !== chapterLit) {
+      e.data = { ...(e.data || {}), preview, chapterLit };
     }
-    const nextClass = preview ? 'is-preview' : '';
+    let nextClass = '';
+    if (preview) nextClass = 'is-preview';
+    else if (chapterLit) nextClass = 'is-chapter';
     if (e.class !== nextClass) e.class = nextClass;
   }
 
   for (const n of nodes.value) {
     if (n.data?.kind === 'chapter' || n.type === 'chapter') {
-      n.selected = false;
-      n.class = '';
+      n.selected = n.id === chapterId;
+      n.class = chapterId && n.id === chapterId ? 'is-chapter-frame' : '';
       continue;
     }
     const on = n.id === activeId;
     if (n.selected !== on) n.selected = on;
     let nextClass = '';
     if (hasFocus && !spotlight.has(n.id)) nextClass = 'is-dimmed';
-    else if (hasFocus && spotlight.has(n.id) && n.id !== activeId) nextClass = 'is-neighbor';
+    else if (hasFocus && spotlight.has(n.id) && n.id !== activeId) {
+      nextClass = 'is-chapter-peer';
+    }
     if (n.class !== nextClass) n.class = nextClass;
   }
 }
@@ -116,12 +144,15 @@ watch(
   async (nonce) => {
     if (!nonce || !props.activeId) return;
     await nextTick();
-    const ids = [...neighborIds(props.activeId)];
+    const ch = chapterIdOf(props.activeId);
+    const ids = ch
+      ? [...chapterMemberIds(ch)]
+      : [...neighborIds(props.activeId)];
     fitView({
       nodes: ids,
-      padding: 0.32,
+      padding: 0.28,
       duration: 420,
-      maxZoom: 1.1,
+      maxZoom: 1.05,
     });
   }
 );
@@ -202,18 +233,20 @@ function resetLayout() {
   doFit(450);
 }
 
-/** 框选当前焦点邻域（工具栏） */
+/** 框选当前节点所属整章 */
 function fitNeighborhood() {
   const id = props.activeId || hoverId.value;
   if (!id) {
     doFit(400);
     return;
   }
+  const ch = chapterIdOf(id);
+  const ids = ch ? [...chapterMemberIds(ch)] : [id];
   fitView({
-    nodes: [...neighborIds(id)],
-    padding: 0.32,
+    nodes: ids,
+    padding: 0.28,
     duration: 400,
-    maxZoom: 1.1,
+    maxZoom: 1.05,
   });
 }
 </script>
@@ -267,11 +300,11 @@ function fitNeighborhood() {
       <button
         type="button"
         class="graph-tool"
-        title="框选当前节点及其相邻节点"
-        aria-label="聚焦邻域"
+        title="框选当前节点所属章节"
+        aria-label="聚焦本章"
         @click="fitNeighborhood"
       >
-        邻域
+        本章
       </button>
       <button
         type="button"
@@ -284,7 +317,7 @@ function fitNeighborhood() {
       </button>
     </div>
     <p class="graph-hint" aria-hidden="true">
-      悬停预览关系 · 点选阅读 · 点连线跳转
+      点选点亮整章 · 悬停预览关系 · 点连线跳转
     </p>
   </div>
 </template>
@@ -319,19 +352,24 @@ function fitNeighborhood() {
 }
 
 .graph-wrap :deep(.vue-flow__node.is-dimmed) {
-  opacity: 0.22;
-  filter: grayscale(0.4);
+  opacity: 0.52;
+  filter: grayscale(0.18);
 }
 
 .graph-wrap :deep(.vue-flow__node.is-dimmed:hover) {
-  opacity: 0.85;
+  opacity: 0.92;
   filter: none;
 }
 
-.graph-wrap :deep(.vue-flow__node.is-neighbor .card) {
+.graph-wrap :deep(.vue-flow__node.is-chapter-peer .card) {
   box-shadow:
-    0 0 0 2px rgba(255, 255, 255, 0.35),
+    0 0 0 2px rgba(255, 255, 255, 0.32),
     var(--shadow-node);
+  filter: brightness(1.03);
+}
+
+.graph-wrap :deep(.vue-flow__node-chapter.is-chapter-frame) {
+  opacity: 1 !important;
 }
 
 .graph-wrap :deep(.vue-flow__node.dragging) {
@@ -360,13 +398,21 @@ function fitNeighborhood() {
 }
 
 .graph-wrap.has-focus
-  :deep(.vue-flow__edge:not(.selected):not(.is-preview) .vue-flow__edge-path) {
-  stroke-opacity: 0.1 !important;
+  :deep(
+    .vue-flow__edge:not(.selected):not(.is-preview):not(.is-chapter)
+      .vue-flow__edge-path
+  ) {
+  stroke-opacity: 0.18 !important;
 }
 
 .graph-wrap :deep(.vue-flow__edge.selected .vue-flow__edge-path),
 .graph-wrap :deep(.vue-flow__edge.is-preview .vue-flow__edge-path) {
   stroke-opacity: 1 !important;
+}
+
+.graph-wrap :deep(.vue-flow__edge.is-chapter .vue-flow__edge-path) {
+  stroke-opacity: 0.88 !important;
+  stroke-width: 2.15;
 }
 
 .graph-wrap :deep(.vue-flow__edge-path) {
