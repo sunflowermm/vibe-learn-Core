@@ -1,0 +1,14 @@
+{
+  "id": "vibe-learn",
+  "name": "Vibe Learn — 知识节点图谱",
+  "enabled": true,
+  "mode": "dev",
+  "command": "pnpm",
+  "args": ["dev"],
+  "devOnly": true,
+  "modes": ["dev"],
+  "port": 5188,
+  "proxy": { "mount": "/vibe-learn" },
+  "env": { "BROWSER": "none" },
+  "autoRestart": true
+}
