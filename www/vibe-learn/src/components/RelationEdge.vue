@@ -1,6 +1,6 @@
 <script setup>
 /**
- * 连线：默认正交折线；标签仅在选中/悬停时显示，且不压在节点之上
+ * 连线：正交折线为主；标签仅在选中 / 悬停预览 / 悬停线段时显示
  */
 import { computed, ref } from 'vue';
 import {
@@ -36,25 +36,31 @@ const hovered = ref(false);
 const text = computed(() => props.label || props.data?.label || '');
 const stroke = computed(() => props.data?.color || 'var(--edge-stroke)');
 const isSide = computed(() => props.data?.branch === 'side');
+const isPreview = computed(() => Boolean(props.data?.preview));
 const routeOffset = computed(() => Number(props.data?.routeOffset) || 0);
 const pathKind = computed(() => props.data?.pathKind || 'smoothstep');
 const showLabel = computed(
-  () => Boolean(text.value) && (props.selected || hovered.value)
+  () =>
+    Boolean(text.value) &&
+    (props.selected || isPreview.value || hovered.value)
 );
 
-const pathStyle = computed(() => ({
-  stroke: stroke.value,
-  strokeWidth: props.selected ? 2.6 : hovered.value ? 2.1 : 'var(--edge-width)',
-  strokeDasharray: isSide.value ? '4 6' : '7 5',
-  strokeOpacity: props.selected
-    ? 1
-    : hovered.value
-      ? 0.85
-      : isSide.value
-        ? 'calc(var(--edge-opacity) * 0.7)'
-        : 'var(--edge-opacity)',
-  ...(props.style || {}),
-}));
+const pathStyle = computed(() => {
+  const active = props.selected || isPreview.value || hovered.value;
+  return {
+    stroke: stroke.value,
+    strokeWidth: props.selected ? 2.75 : active ? 2.2 : 'var(--edge-width)',
+    strokeDasharray: isSide.value ? '4 6' : '7 5',
+    strokeOpacity: props.selected
+      ? 1
+      : isPreview.value || hovered.value
+        ? 0.9
+        : isSide.value
+          ? 'calc(var(--edge-opacity) * 0.65)'
+          : 'var(--edge-opacity)',
+    ...(props.style || {}),
+  };
+});
 
 function offsetEndpoints(ox, oy, tx, ty, offset) {
   if (!offset) return { sx: ox, sy: oy, ex: tx, ey: ty, dx: tx - ox, dy: ty - oy };
@@ -70,24 +76,17 @@ function offsetEndpoints(ox, oy, tx, ty, offset) {
     ey: ty + ny * offset * 0.35,
     dx,
     dy,
-    nx,
-    ny,
   };
 }
 
-/** 标签放在路径中点，并沿法线外推，远离端点卡片 */
 function labelPoint(mx, my, sx, sy, ex, ey, offset) {
   const dx = ex - sx;
   const dy = ey - sy;
   const len = Math.hypot(dx, dy) || 1;
   const nx = -dy / len;
   const ny = dx / len;
-  const push = 14 + Math.abs(offset) * 0.35;
-  /* 略偏向路径中段外侧，减少压在节点顶边 */
-  return {
-    lx: mx + nx * push,
-    ly: my + ny * push,
-  };
+  const push = 16 + Math.abs(offset) * 0.35;
+  return { lx: mx + nx * push, ly: my + ny * push };
 }
 
 const geometry = computed(() => {
@@ -105,7 +104,6 @@ const geometry = computed(() => {
       srcPos,
       offset
     );
-    const stepOffset = 20 + Math.abs(offset) * 0.25;
     const [path, mx, my] = getSmoothStepPath({
       sourceX: props.sourceX,
       sourceY: props.sourceY,
@@ -114,7 +112,7 @@ const geometry = computed(() => {
       sourcePosition: srcPos,
       targetPosition: tgtPos,
       borderRadius: 16,
-      offset: stepOffset,
+      offset: 20 + Math.abs(offset) * 0.25,
       centerX,
       centerY,
     });
@@ -137,7 +135,6 @@ const geometry = computed(() => {
     props.targetY,
     offset
   );
-  const curvature = curvatureForDistance(dx, dy);
   const [path, mx, my] = getBezierPath({
     sourceX: sx,
     sourceY: sy,
@@ -145,7 +142,7 @@ const geometry = computed(() => {
     targetY: ey,
     sourcePosition: srcPos,
     targetPosition: tgtPos,
-    curvature,
+    curvature: curvatureForDistance(dx, dy),
   });
   const { lx, ly } = labelPoint(mx, my, sx, sy, ex, ey, offset);
   return { path, lx, ly };
@@ -167,29 +164,28 @@ export default { inheritAttrs: false };
 <template>
   <g
     class="rel-edge"
-    :class="{ selected, animated, side: isSide, hovered }"
+    :class="{ selected, animated, side: isSide, preview: isPreview, hovered }"
     @mouseenter="hovered = true"
     @mouseleave="hovered = false"
   >
-    <!-- 加宽透明描边便于悬停 -->
     <path
       class="rel-edge__hit"
       :d="geometry.path"
       fill="none"
       stroke="transparent"
-      stroke-width="18"
+      stroke-width="20"
     />
     <BaseEdge
       :id="id"
       :path="geometry.path"
       :style="pathStyle"
-      :class="{ selected, animated, side: isSide }"
+      :class="{ selected, animated, side: isSide, preview: isPreview }"
     />
   </g>
   <EdgeLabelRenderer v-if="showLabel">
     <div
       class="rel-label nodrag nopan"
-      :class="{ selected, side: isSide }"
+      :class="{ selected, side: isSide, preview: isPreview }"
       :style="labelStyle"
       :title="text"
     >
@@ -201,7 +197,7 @@ export default { inheritAttrs: false };
 <style scoped>
 .rel-edge__hit {
   pointer-events: stroke;
-  cursor: default;
+  cursor: pointer;
 }
 
 .rel-label {
@@ -220,16 +216,35 @@ export default { inheritAttrs: false };
   background: var(--label-bg);
   border: 1px solid;
   box-shadow: var(--shadow-sm);
-  opacity: 0.96;
+  animation: rel-label-in 0.18s ease-out;
+}
+
+.rel-label.preview:not(.selected) {
+  font-weight: 500;
+  opacity: 0.92;
 }
 
 .rel-label.side {
   font-weight: 500;
-  opacity: 0.9;
 }
 
 .rel-label.selected {
   font-weight: 700;
   box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 28%, transparent);
+}
+
+@keyframes rel-label-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rel-label {
+    animation: none;
+  }
 }
 </style>

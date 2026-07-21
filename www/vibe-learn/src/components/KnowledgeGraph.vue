@@ -28,6 +28,7 @@ const nodes = ref(
   buildFlowNodes().map((n) => ({
     ...n,
     selected: n.id === props.activeId,
+    class: '',
   }))
 );
 const edges = ref(buildFlowEdges());
@@ -46,25 +47,67 @@ const miniMask = computed(() =>
   isLight.value ? 'rgba(248, 250, 252, 0.7)' : 'rgba(9, 9, 11, 0.72)'
 );
 
+/** 悬停节点：预览相邻关系（未点选时也出标签） */
+const hoverId = ref(null);
+
 /** 区分点击与拖拽，避免拖完误选/误清 */
 let dragMoved = false;
 /** 拖章标题时，同步平移同章 topic */
 let chapterDragOrigin = null;
 
-function syncSelection(id) {
-  for (const n of nodes.value) {
-    const on = n.id === id;
-    if (n.selected !== on) n.selected = on;
-  }
+function neighborIds(id) {
+  if (!id) return new Set();
+  const set = new Set([id]);
   for (const e of edges.value) {
-    const on = Boolean(id && (e.source === id || e.target === id));
-    if (e.selected !== on) e.selected = on;
+    if (e.source === id) set.add(e.target);
+    if (e.target === id) set.add(e.source);
+  }
+  return set;
+}
+
+/**
+ * 选中 → 高亮邻边并显示标签；悬停 → 预览邻边标签；其余节点弱化
+ */
+function syncHighlight(activeId, hoveredId) {
+  const activeN = neighborIds(activeId);
+  const hoverN = neighborIds(hoveredId);
+  const spotlight = new Set([...activeN, ...hoverN]);
+  const hasFocus = Boolean(activeId || hoveredId);
+
+  for (const e of edges.value) {
+    const onActive = Boolean(
+      activeId && (e.source === activeId || e.target === activeId)
+    );
+    const onHover = Boolean(
+      hoveredId && (e.source === hoveredId || e.target === hoveredId)
+    );
+    if (e.selected !== onActive) e.selected = onActive;
+    const preview = onHover && !onActive;
+    if (e.data?.preview !== preview) {
+      e.data = { ...(e.data || {}), preview };
+    }
+    const nextClass = preview ? 'is-preview' : '';
+    if (e.class !== nextClass) e.class = nextClass;
+  }
+
+  for (const n of nodes.value) {
+    if (n.data?.kind === 'chapter' || n.type === 'chapter') {
+      n.selected = false;
+      n.class = '';
+      continue;
+    }
+    const on = n.id === activeId;
+    if (n.selected !== on) n.selected = on;
+    let nextClass = '';
+    if (hasFocus && !spotlight.has(n.id)) nextClass = 'is-dimmed';
+    else if (hasFocus && spotlight.has(n.id) && n.id !== activeId) nextClass = 'is-neighbor';
+    if (n.class !== nextClass) n.class = nextClass;
   }
 }
 
 watch(
-  () => props.activeId,
-  (id) => syncSelection(id),
+  () => [props.activeId, hoverId.value],
+  ([active, hover]) => syncHighlight(active, hover),
   { immediate: true }
 );
 
@@ -73,23 +116,60 @@ watch(
   async (nonce) => {
     if (!nonce || !props.activeId) return;
     await nextTick();
+    const ids = [...neighborIds(props.activeId)];
     fitView({
-      nodes: [props.activeId],
-      padding: 0.45,
+      nodes: ids,
+      padding: 0.32,
       duration: 420,
-      maxZoom: 1.15,
+      maxZoom: 1.1,
     });
   }
 );
 
 function onNodeClick({ node }) {
   if (dragMoved) return;
+  if (node.type === 'chapter') return;
   emit('select', node.id);
+  focusNeighborhood(node.id);
 }
 
 function onPaneClick() {
   if (dragMoved) return;
+  hoverId.value = null;
   emit('clear');
+}
+
+/** 点连线：沿关系跳到另一端（已选一端则去对端，否则去 target） */
+function onEdgeClick({ edge }) {
+  if (dragMoved) return;
+  const a = props.activeId;
+  let next;
+  if (a === edge.source) next = edge.target;
+  else if (a === edge.target) next = edge.source;
+  else next = edge.target;
+  emit('select', next);
+  focusNeighborhood(next);
+}
+
+function focusNeighborhood(id) {
+  if (!id) return;
+  nextTick(() => {
+    fitView({
+      nodes: [...neighborIds(id)],
+      padding: 0.34,
+      duration: 360,
+      maxZoom: 1.08,
+    });
+  });
+}
+
+function onNodeMouseEnter({ node }) {
+  if (node.type === 'chapter' || node.data?.kind === 'chapter') return;
+  hoverId.value = node.id;
+}
+
+function onNodeMouseLeave({ node }) {
+  if (hoverId.value === node.id) hoverId.value = null;
 }
 
 function onNodeDragStart({ node }) {
@@ -116,7 +196,6 @@ function onNodeDrag({ node }) {
 
 function onNodeDragStop() {
   chapterDragOrigin = null;
-  /* 下一拍再清，避免同一次 pointerup 仍触发 click */
   requestAnimationFrame(() => {
     dragMoved = false;
   });
@@ -135,12 +214,28 @@ function resetLayout() {
       n.position.y = p.y;
     }
   }
+  hoverId.value = null;
   doFit(450);
+}
+
+/** 框选当前焦点邻域（工具栏） */
+function fitNeighborhood() {
+  const id = props.activeId || hoverId.value;
+  if (!id) {
+    doFit(400);
+    return;
+  }
+  fitView({
+    nodes: [...neighborIds(id)],
+    padding: 0.32,
+    duration: 400,
+    maxZoom: 1.1,
+  });
 }
 </script>
 
 <template>
-  <div class="graph-wrap">
+  <div class="graph-wrap" :class="{ 'has-focus': Boolean(activeId || hoverId) }">
     <VueFlow
       v-model:nodes="nodes"
       v-model:edges="edges"
@@ -163,7 +258,10 @@ function resetLayout() {
       :prevent-scrolling="true"
       fit-view-on-init
       @node-click="onNodeClick"
+      @edge-click="onEdgeClick"
       @pane-click="onPaneClick"
+      @node-mouse-enter="onNodeMouseEnter"
+      @node-mouse-leave="onNodeMouseLeave"
       @node-drag-start="onNodeDragStart"
       @node-drag="onNodeDrag"
       @node-drag-stop="onNodeDragStop"
@@ -185,6 +283,15 @@ function resetLayout() {
       <button
         type="button"
         class="graph-tool"
+        title="框选当前节点及其相邻节点"
+        aria-label="聚焦邻域"
+        @click="fitNeighborhood"
+      >
+        邻域
+      </button>
+      <button
+        type="button"
+        class="graph-tool"
         title="恢复默认布局（双击空白亦可）"
         aria-label="复位布局"
         @click="resetLayout"
@@ -192,6 +299,9 @@ function resetLayout() {
         复位
       </button>
     </div>
+    <p class="graph-hint" aria-hidden="true">
+      悬停预览关系 · 点选阅读 · 点连线跳转
+    </p>
   </div>
 </template>
 
@@ -207,8 +317,9 @@ function resetLayout() {
   z-index: 1 !important;
 }
 
+/* 标签仅少量出现时可压在节点之上，保证可读 */
 .graph-wrap :deep(.vue-flow__edge-labels) {
-  z-index: 2 !important;
+  z-index: 6 !important;
   pointer-events: none !important;
 }
 
@@ -218,6 +329,25 @@ function resetLayout() {
 
 .graph-wrap :deep(.vue-flow__node) {
   cursor: pointer;
+  transition:
+    opacity 0.22s ease,
+    filter 0.22s ease;
+}
+
+.graph-wrap :deep(.vue-flow__node.is-dimmed) {
+  opacity: 0.22;
+  filter: grayscale(0.4);
+}
+
+.graph-wrap :deep(.vue-flow__node.is-dimmed:hover) {
+  opacity: 0.85;
+  filter: none;
+}
+
+.graph-wrap :deep(.vue-flow__node.is-neighbor .card) {
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.35),
+    var(--shadow-node);
 }
 
 .graph-wrap :deep(.vue-flow__node.dragging) {
@@ -232,6 +362,8 @@ function resetLayout() {
   box-shadow: none !important;
   cursor: default !important;
   pointer-events: none !important;
+  opacity: 1 !important;
+  filter: none !important;
 }
 
 .graph-wrap :deep(.vue-flow__node-chapter .chapter__drag) {
@@ -243,23 +375,27 @@ function resetLayout() {
   cursor: grabbing;
 }
 
-/* 选中某节点时：弱化无关连线，突出相关边 */
-.graph-wrap :deep(.vue-flow__edges:has(.vue-flow__edge.selected) .vue-flow__edge:not(.selected) path) {
-  stroke-opacity: 0.12 !important;
+.graph-wrap.has-focus
+  :deep(.vue-flow__edge:not(.selected):not(.is-preview) .vue-flow__edge-path) {
+  stroke-opacity: 0.1 !important;
 }
 
-.graph-wrap :deep(.vue-flow__edges:has(.vue-flow__edge.selected) .vue-flow__edge.selected path) {
+.graph-wrap :deep(.vue-flow__edge.selected .vue-flow__edge-path),
+.graph-wrap :deep(.vue-flow__edge.is-preview .vue-flow__edge-path) {
   stroke-opacity: 1 !important;
 }
 
 .graph-wrap :deep(.vue-flow__edge-path) {
   stroke-linecap: round;
   pointer-events: none;
-  transition: stroke-opacity 0.2s ease, stroke-width 0.2s ease;
+  transition:
+    stroke-opacity 0.2s ease,
+    stroke-width 0.2s ease;
 }
 
 .graph-wrap :deep(.vue-flow__edge) {
   pointer-events: stroke;
+  cursor: pointer;
 }
 
 .graph-wrap :deep(.vue-flow__edge.animated path) {
@@ -309,6 +445,8 @@ function resetLayout() {
   top: 12px;
   right: 12px;
   z-index: 30;
+  display: flex;
+  gap: 8px;
 }
 
 .graph-tool {
@@ -330,6 +468,29 @@ function resetLayout() {
   border-color: var(--accent);
 }
 
+.graph-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 15;
+  margin: 0;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--mist-dim);
+  background: var(--glass);
+  border: 1px solid var(--line);
+  pointer-events: none;
+  opacity: 0.85;
+  transition: opacity 0.25s ease;
+}
+
+.graph-wrap.has-focus .graph-hint {
+  opacity: 0;
+}
+
 @keyframes vf-dash {
   from {
     stroke-dashoffset: 10;
@@ -339,6 +500,10 @@ function resetLayout() {
 @media (prefers-reduced-motion: reduce) {
   .graph-wrap :deep(.vue-flow__edge.animated path) {
     animation: none;
+  }
+
+  .graph-wrap :deep(.vue-flow__node) {
+    transition: none;
   }
 }
 </style>
