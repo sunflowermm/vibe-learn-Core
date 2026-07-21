@@ -7,7 +7,7 @@ defineProps({
 
 <template>
   <div class="chapter" :class="{ selected }">
-    <header class="chapter__head chapter__drag" title="拖这里移动整章" data-blobity>
+    <header class="chapter__head chapter__drag" title="拖这里移动整章（框内节点一起动）" data-blobity>
       <span class="chapter__tag">{{ data.tag }}</span>
       <div class="chapter__text">
         <h3 class="chapter__title">{{ data.label }}</h3>
@@ -25,7 +25,7 @@ defineProps({
   box-sizing: border-box;
   border-radius: 18px;
   border: 2px dashed var(--chapter-border);
-  /* 必须透明：节点层在连线之上，有底色会把框内边压糊 */
+  /* 无填充：节点层压在连线上，有底色会糊住框内边 */
   background: transparent;
   pointer-events: none;
 }

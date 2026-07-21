@@ -5,8 +5,7 @@ import { Controls } from '@vue-flow/controls';
 import { MiniMap } from '@vue-flow/minimap';
 import { computed, nextTick, ref, watch } from 'vue';
 import ChapterFrame from './ChapterFrame.vue';
-import ExtensionStub from './ExtensionStub.vue';
-import KnowledgeNode from './KnowledgeNode.vue';
+import GraphCard from './GraphCard.vue';
 import RelationEdge from './RelationEdge.vue';
 import {
   buildFlowEdges,
@@ -16,10 +15,12 @@ import {
 
 const props = defineProps({
   activeId: { type: String, default: null },
-  theme: { type: String, default: 'dark' },
+  theme: { type: String, default: 'light' },
+  /** 面板导航时递增，触发聚焦选中节点 */
+  focusNonce: { type: Number, default: 0 },
 });
 
-const emit = defineEmits(['select']);
+const emit = defineEmits(['select', 'clear']);
 
 const { fitView } = useVueFlow();
 
@@ -32,45 +33,74 @@ const nodes = ref(
 const edges = ref(buildFlowEdges());
 
 const nodeTypes = {
-  knowledge: KnowledgeNode,
+  knowledge: GraphCard,
   chapter: ChapterFrame,
-  stub: ExtensionStub,
+  stub: GraphCard,
 };
 const edgeTypes = { relation: RelationEdge };
 
-/** 网格：暗底用弱灰线，不要发白 */
-const bgVariant = computed(() => 'lines');
+const isLight = computed(() => props.theme === 'light');
 const bgColor = computed(() =>
-  props.theme === 'light' ? '#e2e8f0' : 'rgba(161, 161, 170, 0.18)'
+  isLight.value ? '#e2e8f0' : 'rgba(161, 161, 170, 0.18)'
 );
-const bgGap = computed(() => 24);
-const bgSize = computed(() => 1);
 const miniMask = computed(() =>
-  props.theme === 'light' ? 'rgba(248, 250, 252, 0.7)' : 'rgba(9, 9, 11, 0.72)'
+  isLight.value ? 'rgba(248, 250, 252, 0.7)' : 'rgba(9, 9, 11, 0.72)'
 );
 
+/** 区分点击与拖拽，避免拖完误选/误清 */
+let dragMoved = false;
+/** 拖章标题时，同步平移同章 topic */
 let chapterDragOrigin = null;
+
+function syncSelection(id) {
+  for (const n of nodes.value) {
+    const on = n.id === id;
+    if (n.selected !== on) n.selected = on;
+  }
+  for (const e of edges.value) {
+    const on = Boolean(id && (e.source === id || e.target === id));
+    if (e.selected !== on) e.selected = on;
+  }
+}
 
 watch(
   () => props.activeId,
-  (id) => {
-    for (const n of nodes.value) {
-      const on = n.id === id;
-      if (n.selected !== on) n.selected = on;
-    }
+  (id) => syncSelection(id),
+  { immediate: true }
+);
+
+watch(
+  () => props.focusNonce,
+  async (nonce) => {
+    if (!nonce || !props.activeId) return;
+    await nextTick();
+    fitView({
+      nodes: [props.activeId],
+      padding: 0.45,
+      duration: 420,
+      maxZoom: 1.15,
+    });
   }
 );
 
 function onNodeClick({ node }) {
+  if (dragMoved) return;
   emit('select', node.id);
 }
 
+function onPaneClick() {
+  if (dragMoved) return;
+  emit('clear');
+}
+
 function onNodeDragStart({ node }) {
+  dragMoved = false;
   chapterDragOrigin =
     node.type === 'chapter' ? { x: node.position.x, y: node.position.y } : null;
 }
 
 function onNodeDrag({ node }) {
+  dragMoved = true;
   if (node.type !== 'chapter' || !chapterDragOrigin) return;
   const dx = node.position.x - chapterDragOrigin.x;
   const dy = node.position.y - chapterDragOrigin.y;
@@ -87,10 +117,14 @@ function onNodeDrag({ node }) {
 
 function onNodeDragStop() {
   chapterDragOrigin = null;
+  /* 下一拍再清，避免同一次 pointerup 仍触发 click */
+  requestAnimationFrame(() => {
+    dragMoved = false;
+  });
 }
 
-function onInit() {
-  nextTick(() => fitView({ padding: 0.16, duration: 600 }));
+function doFit(duration = 450) {
+  nextTick(() => fitView({ padding: 0.16, duration }));
 }
 
 function resetLayout() {
@@ -102,11 +136,7 @@ function resetLayout() {
       n.position.y = p.y;
     }
   }
-  nextTick(() => fitView({ padding: 0.16, duration: 450 }));
-}
-
-function miniColor(node) {
-  return node.data?.tone?.bg || '#6366f1';
+  doFit(450);
 }
 </script>
 
@@ -133,29 +163,34 @@ function miniColor(node) {
       :prevent-scrolling="true"
       fit-view-on-init
       @node-click="onNodeClick"
+      @pane-click="onPaneClick"
       @node-drag-start="onNodeDragStart"
       @node-drag="onNodeDrag"
       @node-drag-stop="onNodeDragStop"
-      @pane-ready="onInit"
+      @pane-ready="() => doFit(600)"
       @pane-double-click="resetLayout"
     >
-      <Background
-        :variant="bgVariant"
-        :gap="bgGap"
-        :size="bgSize"
-        :pattern-color="bgColor"
-      />
-      <Controls position="bottom-left" />
+      <Background variant="lines" :gap="24" :size="1" :pattern-color="bgColor" />
+      <Controls position="bottom-left" aria-label="画布缩放控制" />
       <MiniMap
         position="bottom-right"
         pannable
         zoomable
-        :node-color="miniColor"
+        aria-label="小地图"
+        :node-color="(n) => n.data?.tone?.bg || '#6366f1'"
         :mask-color="miniMask"
       />
     </VueFlow>
     <div class="graph-tools">
-      <button type="button" class="graph-tool" @click="resetLayout">复位</button>
+      <button
+        type="button"
+        class="graph-tool"
+        title="恢复默认布局（双击空白亦可）"
+        aria-label="复位布局"
+        @click="resetLayout"
+      >
+        复位
+      </button>
     </div>
   </div>
 </template>
@@ -169,7 +204,6 @@ function miniColor(node) {
 }
 
 .graph-wrap :deep(.vue-flow__edges) {
-  /* 连线在章框之上：章框仅描边无填充，避免盖住框内边 */
   z-index: 2 !important;
   pointer-events: none !important;
 }
@@ -184,10 +218,10 @@ function miniColor(node) {
 }
 
 .graph-wrap :deep(.vue-flow__node) {
-  cursor: grab;
+  cursor: pointer;
 }
 
-.graph-wrap :deep(.vue-flow__node:active) {
+.graph-wrap :deep(.vue-flow__node.dragging) {
   cursor: grabbing;
 }
 
@@ -198,7 +232,6 @@ function miniColor(node) {
   background: transparent !important;
   box-shadow: none !important;
   cursor: default !important;
-  /* 大框本身穿透，空白处可平移画布；只有小卡片接事件 */
   pointer-events: none !important;
 }
 
@@ -214,9 +247,9 @@ function miniColor(node) {
 .graph-wrap :deep(.vue-flow__edge-path) {
   stroke-linecap: round;
   pointer-events: none;
+  transition: stroke-opacity 0.2s ease, stroke-width 0.2s ease;
 }
 
-/* 与官网 animated edge 一致 */
 .graph-wrap :deep(.vue-flow__edge.animated path) {
   stroke-dasharray: 5;
   animation: vf-dash 0.5s linear infinite;
@@ -247,6 +280,10 @@ function miniColor(node) {
   background: var(--ink-3);
 }
 
+.graph-wrap :deep(.vue-flow__controls-button:focus-visible) {
+  box-shadow: var(--focus-ring);
+}
+
 .graph-wrap :deep(.vue-flow__minimap) {
   border-radius: 4px;
   overflow: hidden;
@@ -271,6 +308,9 @@ function miniColor(node) {
   background: var(--glass);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-sm);
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .graph-tool:hover {
@@ -281,6 +321,12 @@ function miniColor(node) {
 @keyframes vf-dash {
   from {
     stroke-dashoffset: 10;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .graph-wrap :deep(.vue-flow__edge.animated path) {
+    animation: none;
   }
 }
 </style>

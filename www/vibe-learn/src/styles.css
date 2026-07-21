@@ -15,33 +15,27 @@
   --accent: #0ea5e9;
   --accent-soft: rgba(14, 165, 233, 0.12);
   --signal: #0284c7;
-  --amber: #f97316;
+  --amber: #ea580c;
   --line: rgba(15, 23, 42, 0.08);
   --glass: rgba(255, 255, 255, 0.92);
   --shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
   --shadow-node: 0 10px 28px rgba(15, 23, 42, 0.12);
   --shadow-sm: 0 4px 14px rgba(15, 23, 42, 0.08);
   --node-title: #0f172a;
-  --chapter-bg: transparent;
   --chapter-border: rgba(100, 116, 139, 0.55);
   --label-bg: #ffffff;
-  --label-fg: #334155;
-  --label-border: #cbd5e1;
   --panel-bg: #f8fafc;
-  --grid: #cbd5e1;
   --topbar-bg: rgba(255, 255, 255, 0.9);
   --radius: 14px;
   --font-display: 'Inter', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
-  --vf-handle: #94a3b8;
-  --vf-connection-path: #94a3b8;
   --edge-stroke: #64748b;
   --edge-opacity: 0.92;
   --edge-width: 2;
+  --focus-ring: 0 0 0 2px var(--ink), 0 0 0 4px var(--accent);
 }
 
-/* 黑天：锌黑底 + 冰蓝强调；网格/边线压暗，避免发白刺眼 */
 [data-theme='dark'] {
   color-scheme: dark;
   --ink: #09090b;
@@ -60,20 +54,14 @@
   --shadow-node: 0 14px 36px rgba(0, 0, 0, 0.5);
   --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.4);
   --node-title: #fafafa;
-  --chapter-bg: transparent;
   --chapter-border: rgba(161, 161, 170, 0.5);
   --label-bg: #1c1c1f;
-  --label-fg: #e4e4e7;
-  --label-border: #52525b;
   --panel-bg: #111113;
-  --grid: rgba(161, 161, 170, 0.16);
   --edge-stroke: #a1a1aa;
-  /* 彩色虚线：够看清，又不发白刺眼 */
   --edge-opacity: 0.82;
   --edge-width: 2;
   --topbar-bg: rgba(9, 9, 11, 0.9);
-  --vf-handle: #52525b;
-  --vf-connection-path: #52525b;
+  --focus-ring: 0 0 0 2px var(--ink), 0 0 0 4px var(--accent);
 }
 
 *,
@@ -95,9 +83,9 @@ body {
   background: var(--ink);
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
-
-/* Blobity 自带 html 光标点 + * { cursor: inherit }，勿再强制 cursor:none */
 
 button {
   font: inherit;
@@ -105,6 +93,35 @@ button {
   border: none;
   background: none;
   color: inherit;
+}
+
+button:focus {
+  outline: none;
+}
+
+button:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+.skip-link {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  z-index: 100;
+  padding: 0.5rem 0.85rem;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transform: translateY(-120%);
+  transition: transform 0.2s ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .app-shell {
@@ -119,7 +136,9 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.75rem 1.25rem;
+  padding: 0.75rem max(1.25rem, env(safe-area-inset-right)) 0.75rem
+    max(1.25rem, env(safe-area-inset-left));
+  padding-top: max(0.75rem, env(safe-area-inset-top));
   border-bottom: 1px solid var(--line);
   background: var(--topbar-bg);
   backdrop-filter: blur(12px);
@@ -138,6 +157,7 @@ button {
   font-weight: 700;
   letter-spacing: -0.03em;
   color: var(--mist);
+  text-wrap: balance;
 }
 
 .brand-mark span {
@@ -156,31 +176,35 @@ button {
 }
 
 .theme-toggle {
-  display: inline-flex;
-  padding: 3px;
+  padding: 0.4rem 0.85rem;
   border-radius: 999px;
   border: 1px solid var(--line);
   background: var(--ink-3);
-  gap: 2px;
-}
-
-.theme-toggle__btn {
-  padding: 0.35rem 0.75rem;
-  border-radius: 999px;
   font-size: 0.72rem;
   font-family: var(--font-mono);
-  color: var(--mist-dim);
+  color: var(--mist);
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease;
 }
 
-.theme-toggle__btn.active {
+.theme-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.theme-toggle[aria-pressed='true'] {
   background: var(--accent);
   color: #fff;
+  border-color: var(--accent);
 }
 
 .topbar-meta {
   font-family: var(--font-mono);
   font-size: 0.72rem;
   color: var(--mist-dim);
+  font-variant-numeric: tabular-nums;
 }
 
 .topbar-meta strong {
@@ -201,6 +225,10 @@ button {
   .brand-sub {
     display: none;
   }
+  .panel-pane {
+    border-left: none;
+    border-top: 1px solid var(--line);
+  }
 }
 
 .graph-pane {
@@ -216,6 +244,7 @@ button {
   flex-direction: column;
   background: var(--panel-bg);
   border-left: 1px solid var(--line);
+  overscroll-behavior: contain;
 }
 
 .empty-hint {
@@ -230,6 +259,7 @@ button {
   font-size: 1.15rem;
   font-weight: 650;
   color: var(--mist);
+  text-wrap: balance;
 }
 
 .empty-hint p {
@@ -237,4 +267,16 @@ button {
   color: var(--mist-dim);
   line-height: 1.55;
   font-size: 0.88rem;
+  text-wrap: pretty;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

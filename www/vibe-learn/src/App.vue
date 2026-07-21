@@ -7,17 +7,42 @@ import { getNodeById, countTopics } from './data/nodes.js';
 
 const THEME_KEY = 'vibe-learn-theme';
 
-const activeId = ref('chapter-computer-network');
-const theme = ref(
-  typeof localStorage !== 'undefined' && localStorage.getItem(THEME_KEY) === 'dark'
-    ? 'dark'
-    : 'light'
-);
+function readTheme() {
+  try {
+    return localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light';
+  } catch {
+    return 'light';
+  }
+}
 
+function readNodeFromUrl() {
+  try {
+    const id = new URLSearchParams(window.location.search).get('node');
+    return id && getNodeById(id) ? id : 'chapter-computer-network';
+  } catch {
+    return 'chapter-computer-network';
+  }
+}
+
+function writeNodeToUrl(id) {
+  try {
+    const url = new URL(window.location.href);
+    if (id) url.searchParams.set('node', id);
+    else url.searchParams.delete('node');
+    history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+  } catch {
+    /* ignore */
+  }
+}
+
+const activeId = ref(readNodeFromUrl());
+const theme = ref(readTheme());
+/** 面板 chip 跳转时递增，驱动图谱聚焦该节点 */
+const focusNonce = ref(0);
 const activeNode = computed(() => (activeId.value ? getNodeById(activeId.value) : null));
 
-/** 官网同款 Blobity 光标 blob */
 useBlobity(theme);
+
 watch(
   theme,
   (t) => {
@@ -31,12 +56,19 @@ watch(
   { immediate: true }
 );
 
-function setTheme(t) {
-  theme.value = t;
+watch(activeId, (id) => writeNodeToUrl(id), { immediate: true });
+
+function toggleTheme() {
+  theme.value = theme.value === 'dark' ? 'light' : 'dark';
 }
 
 function selectNode(id) {
   activeId.value = id;
+}
+
+function navigateNode(id) {
+  activeId.value = id;
+  focusNonce.value += 1;
 }
 
 function clearSelection() {
@@ -53,51 +85,50 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
 
 <template>
   <div class="app-shell">
+    <a class="skip-link" href="#learn-panel">跳到讲解面板</a>
+
     <header class="topbar">
-      <div class="brand" data-blobity>
+      <div class="brand" data-blobity translate="no">
         <div class="brand-mark">Vibe <span>Learn</span></div>
         <div class="brand-sub">知识图谱</div>
       </div>
       <div class="topbar-actions">
-        <div class="theme-toggle" role="group" aria-label="主题">
-          <button
-            type="button"
-            class="theme-toggle__btn"
-            :class="{ active: theme === 'dark' }"
-            @click="setTheme('dark')"
-          >
-            黑
-          </button>
-          <button
-            type="button"
-            class="theme-toggle__btn"
-            :class="{ active: theme === 'light' }"
-            @click="setTheme('light')"
-          >
-            白
-          </button>
-        </div>
-        <div class="topbar-meta">
-          <div>第一章 <strong>{{ countTopics() }}</strong> 个主题</div>
-        </div>
+        <button
+          type="button"
+          class="theme-toggle"
+          data-blobity
+          :aria-pressed="theme === 'dark'"
+          :aria-label="theme === 'dark' ? '当前深色，点击切换到浅色' : '当前浅色，点击切换到深色'"
+          :title="theme === 'dark' ? '切换到浅色' : '切换到深色'"
+          @click="toggleTheme"
+        >
+          {{ theme === 'dark' ? '深色' : '浅色' }}
+        </button>
+        <div class="topbar-meta">第一章 <strong>{{ countTopics() }}</strong> 个主题</div>
       </div>
     </header>
 
     <div class="workspace">
-      <section class="graph-pane">
-        <KnowledgeGraph :active-id="activeId" :theme="theme" @select="selectNode" />
+      <section class="graph-pane" aria-label="知识图谱画布">
+        <KnowledgeGraph
+          :active-id="activeId"
+          :theme="theme"
+          :focus-nonce="focusNonce"
+          @select="selectNode"
+          @clear="clearSelection"
+        />
       </section>
 
-      <aside class="panel-pane">
+      <aside id="learn-panel" class="panel-pane" aria-label="节点讲解">
         <NodePanel
           v-if="activeNode"
           :node="activeNode"
           @close="clearSelection"
-          @navigate="selectNode"
+          @navigate="navigateNode"
         />
         <div v-else class="empty-hint">
           <h2>选择一个节点</h2>
-          <p>点选卡片阅读；拖动画布平移缩放。顶栏可切换黑 / 白主题。</p>
+          <p>点卡片看讲解；拖空白平移画布；拖章标题可整章移动。Esc 或点空白取消选中。</p>
         </div>
       </aside>
     </div>

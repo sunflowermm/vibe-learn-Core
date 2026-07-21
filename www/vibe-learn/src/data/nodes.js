@@ -356,13 +356,8 @@ export function buildFlowNodes() {
     },
     width: f.size.width,
     height: f.size.height,
-    style: {
-      width: `${f.size.width}px`,
-      height: `${f.size.height}px`,
-    },
     selectable: true,
     draggable: true,
-    /* 仅小标题条拖整章；框内空白不抢画布平移 */
     dragHandle: '.chapter__drag',
     zIndex: 0,
   }));
@@ -425,7 +420,6 @@ export function buildFlowEdges() {
       data: {
         branch: e.branch || 'main',
         color: tone.edge,
-        toneId: tone.id,
       },
       interactive: false,
       focusable: false,

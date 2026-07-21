@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import { marked } from 'marked';
 import NetworkLab from './NetworkLab.vue';
 import { resolveNodes } from '../data/nodes.js';
@@ -18,6 +18,8 @@ marked.setOptions({
   breaks: false,
 });
 
+const scrollEl = ref(null);
+
 const html = computed(() => {
   if (!props.node?.markdown) return '';
   return marked.parse(props.node.markdown);
@@ -29,6 +31,14 @@ const nextNodes = computed(() => resolveNodes(props.node?.next));
 const extendNodes = computed(() =>
   resolveNodes([...(props.node?.chapterOut || []), ...(props.node?.sideOut || [])])
 );
+
+watch(
+  () => props.node?.id,
+  async () => {
+    await nextTick();
+    if (scrollEl.value) scrollEl.value.scrollTop = 0;
+  }
+);
 </script>
 
 <template>
@@ -39,12 +49,12 @@ const extendNodes = computed(() =>
         <h2 class="panel__title">{{ node.label }}</h2>
         <p class="panel__sub">{{ node.subtitle }}</p>
       </div>
-      <button class="panel__close" type="button" aria-label="关闭" @click="emit('close')">
+      <button class="panel__close" type="button" aria-label="关闭" title="Esc" @click="emit('close')">
         Esc
       </button>
     </header>
 
-    <div class="panel__scroll">
+    <div ref="scrollEl" class="panel__scroll">
       <p v-if="node.role" class="panel__role">{{ node.role }}</p>
 
       <nav
