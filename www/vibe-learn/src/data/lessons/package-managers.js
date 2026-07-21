@@ -1,2 +1,145 @@
-/** 包管理器 */
-export default "# 包管理器 · pnpm\n\n> **包管理器**根据清单文件（`package.json`）解析依赖树，从**注册表（registry）**下载模块，并在项目里链接成可 `import` 的目录。  \n> XRK-AGT **只支持 pnpm**（见根目录 `packageManager` / 文档约定）。\n\n## 知识串：三种「装东西」别混\n\n| 名字 | 装的是什么 | 例子 |\n|------|------------|------|\n| **系统包管理器** | 操作系统级软件 | apt、dnf（见 Linux 发行版） |\n| **安装器 / PATH** | 运行时本尊 | Node 的 MSI |\n| **pnpm（本课）** | 项目依赖库 | lodash、vue、本仓依赖 |\n\n零基础最常见的混淆：用 npm 全局乱装，和「在仓库根执行 pnpm install」不是一回事。\n\n## 本课分块\n\n| 角色 | 做什么 |\n|------|--------|\n| **`package.json`** | 声明依赖与脚本，是契约 |\n| **锁文件** | 钉死确切版本（`pnpm-lock.yaml`） |\n| **`node_modules`** | 解析结果的落地；勿手改、勿提交 |\n| **注册表** | 包的下载源（npmjs / 国内镜像） |\n| **Corepack** | Node 自带助手，可启用项目声明的 pnpm 版本 |\n\n```mermaid\nflowchart TB\n  PJ[\"package.json 契约\"] --> PM[\"pnpm install\"]\n  LK[pnpm-lock.yaml] --> PM\n  PM --> REG[注册表下载]\n  REG --> NM[node_modules]\n  NM --> NODE[\"node 执行 import\"]\n```\n\n---\n\n## 为何不能「随便用 npm 装一下」\n\n不同包管理器的依赖布局与 peer 解析策略不一致。  \n项目若声明 `packageManager: pnpm@…`，混用会导致：\n\n- **幽灵依赖**（能 import 却不在清单里）  \n- CI 与本地结果漂移  \n- 文档脚本（`pnpm run …`）对不上  \n\n## 最小命令集\n\n```bash\n# 若尚未安装 pnpm（需已有 Node，且 PATH 通）\ncorepack enable\ncorepack prepare pnpm@latest --activate\n\n# 必须在仓库根目录（能看见根 package.json）\npnpm install\n```\n\n## 和运行时的先后\n\n先有可用的 **Node（版本达标 + PATH）** → 再启用 pnpm → 再在仓库根安装。  \n顺序反了，报错会骗你去「重装系统」。\n\n## 下一步\n\n**Git 与工作区**（若还没有源码）→ **代码托管**（认清 GitHub/Gitee）→ **首次跑通**。\n";
+/** 包管理器 · 默认工具与替代品 · 本仓 pnpm */
+export default `# 包管理器
+
+> **包管理器**依据清单文件解析依赖，从注册表下载模块，并落地为可 \`import\` / \`require\` 的目录结构。  
+> Node 安装通常自带 **npm / npx**；本仓库约定 **仅使用 pnpm**。  
+> 其它解释型（及部分编译型）语言同样存在「默认工具 + 替代实现」。
+
+## 本课分块
+
+| 块 | 目标 |
+|----|------|
+| **三种「装东西」** | 系统包 / 运行时安装 / 项目依赖 |
+| **默认包管理器** | 为何装 Node 就有 npm、npx |
+| **跨语言共性** | Python pip、Rust cargo… 同一模式 |
+| **为何还有 pnpm / uv** | 替代品解决什么问题 |
+| **本仓契约** | 为何钉死 pnpm；最小命令 |
+
+---
+
+## 1. 三种「装东西」勿混
+
+| 类型 | 装的是什么 | 例子 |
+|------|------------|------|
+| **系统包管理器** | OS 级软件 | apt、dnf、Homebrew |
+| **运行时安装器** | 语言引擎本身 | Node MSI → \`node\` |
+| **语言包管理器** | 项目 / 库依赖 | npm、pnpm、pip、uv、cargo |
+
+常见混淆：全局乱装与「在仓库根执行 install」不是同一件事。
+
+---
+
+## 2. 默认包管理器：装完运行时就能装库
+
+解释型语言生态的典型设计：
+
+> **运行时发行版附带（或强烈绑定）一套默认包管理器**，使「装引擎 → 立刻装依赖」成为闭环。
+
+| 运行时 | 默认 / 官方主线工具 | 清单文件（常见） |
+|--------|---------------------|------------------|
+| Node.js | **npm**、**npx** | \`package.json\` |
+| Python | **pip**（常随解释器或 ensurepip） | \`requirements.txt\` / \`pyproject.toml\` |
+| Ruby | **gem** | Gemfile（Bundler） |
+| PHP | **Composer**（官方推荐主线） | \`composer.json\` |
+| Go | **\`go\` 模块命令** | \`go.mod\` |
+| Rust | **cargo** | \`Cargo.toml\` |
+| .NET | **dotnet** CLI | \`.csproj\` |
+
+**为何要自带默认工具？**
+
+1. **库不在语言内核里** — 社区包在注册表；必须有标准客户端。  
+2. **降低上手成本** — 教程可写 \`npm install\` / \`pip install\`，无需先学第三套工具。  
+3. **统一契约** — 同一语言共享清单格式与解析语义的「官方基线」。  
+4. **npx 一类入口** — 按需跑 CLI，避免全局堆积可执行文件。
+
+因此：看见 \`npm -v\` 正常，只说明 **官方默认链路可用**，并不等于每个项目都应使用 npm。
+
+---
+
+## 3. 替代包管理器为何存在（pnpm、uv…）
+
+默认工具优先保证 **通用与兼容**；团队与大规模仓库常需要更严的磁盘、速度与依赖隔离策略，于是出现兼容同一清单、但实现不同的替代品。
+
+| 替代品 | 面向生态 | 相对默认工具的典型动机 |
+|--------|----------|------------------------|
+| **pnpm** | Node（替代 npm / yarn） | 内容寻址存储、严格依赖树、节省磁盘、减少幽灵依赖 |
+| **Yarn** | Node | 早期锁定与并行安装体验（历史推动者） |
+| **uv** | Python（常替代 pip / pip-tools / venv 工作流） | 极快解析与安装、统一项目管理体验 |
+| **Poetry / PDM** | Python | 依赖解析与发布工作流 |
+| **Bun**（含包管理） | JS 运行时兼安装器 | 速度与一体工作流（另一条栈） |
+
+**共性原因（为何「不自带」却广泛使用）：**
+
+| 原因 | 说明 |
+|------|------|
+| **性能与磁盘** | 默认工具在超大 monorepo 上可能偏慢、占空间；pnpm / uv 针对此优化 |
+| **依赖正确性** | 更严格的提升/隔离策略，降低「能 import 却未声明」的幽灵依赖 |
+| **工作流产品化** | 锁文件、工作区、脚本约定与 CI 更易钉死 |
+| **生态允许竞争** | 清单格式公开；客户端可替换，只要能复现依赖树 |
+
+**重要边界：**
+
+- 替代品 **不是** 另一种语言，而是同一生态下的 **另一套安装/链接实现**。  
+- 它们通常 **不随 Node / Python 官方安装器强制附带**，需单独启用（如 Corepack 启 pnpm、独立安装 uv）。  
+- 项目通过 \`packageManager\` 字段、文档或锁文件声明「本仓库用哪一套」——混用会导致布局与 CI 漂移。
+
+\`\`\`mermaid
+flowchart TB
+  RT[安装运行时 Node / Python…] --> DEF[自带默认包管理 npm / pip…]
+  DEF --> ALT[可选替代品 pnpm / uv…]
+  ALT --> LOCK[锁文件与严格布局]
+  LOCK --> APP[项目可复现运行]
+\`\`\`
+
+---
+
+## 4. 本仓库：为何只要 pnpm
+
+| 约定 | 说明 |
+|------|------|
+| 根 \`packageManager\` | 声明 pnpm 版本 |
+| 文档与脚本 | \`pnpm install\` / \`pnpm run …\` |
+| 锁文件 | \`pnpm-lock.yaml\` |
+
+混用 npm / yarn 可能导致：幽灵依赖、本地与 CI 不一致、脚本对不上。
+
+### 最小命令
+
+\`\`\`bash
+# 已有 Node，且 PATH 通
+corepack enable
+corepack prepare pnpm@latest --activate
+
+# 在仓库根（可见根 package.json）
+pnpm install
+\`\`\`
+
+**Corepack**：Node 附带的包管理器版本助手，可按项目声明启用指定 pnpm，而无需长期依赖全局随意安装的 pnpm。
+
+### 与子服的对照
+
+| 栈 | 包 / 依赖工具 |
+|----|----------------|
+| 主服 Node | **pnpm**（本仓） |
+| Python 子服 | 常见 **uv** / pip 工作流（见 \`subserver/pyserver\`） |
+| Go / Rust / .NET… | 各语言自带或惯用工具链 |
+
+主仓 pnpm 不管子服语言依赖；子服按各 runtime 文档安装。
+
+---
+
+## 5. 角色对照（收束）
+
+| 角色 | 职责 |
+|------|------|
+| **Node** | 执行 |
+| **npm / npx** | 官方默认；装完即有 |
+| **pnpm** | 本仓选用的 Node 包管理器 |
+| **uv 等** | 其它语言生态中的高性能替代品，逻辑同类 |
+
+顺序：Node（版本 + PATH）→ 启用 pnpm → 仓库根 \`pnpm install\`。
+
+## 下一步
+
+**Git 与工作区** → **代码托管** → **首次跑通**。
+`;

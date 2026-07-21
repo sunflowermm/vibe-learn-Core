@@ -37,6 +37,7 @@ export const NODE_TONE = {
   'dns-https': 'pink',
   'http-web': 'violet',
   'reverse-proxy': 'rose',
+  'net-edge-practice': 'teal',
 
   'xrk-overview': 'pink',
   'xrk-runtime': 'violet',

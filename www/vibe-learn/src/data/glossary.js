@@ -172,8 +172,78 @@ export const GLOSSARY = {
   },
   pnpm: {
     term: 'pnpm',
-    brief: '一种 Node 包管理器。本仓库只认 pnpm：按 package.json 下载并链接依赖。',
-    also: ['package-managers'],
+    brief: 'Node 生态的替代包管理器；本仓库只认 pnpm。相对 npm：更省磁盘、依赖树更严。',
+    also: ['package-managers', 'runtime-nodejs'],
+  },
+  npm: {
+    term: 'npm',
+    brief: 'Node 官方默认包管理器；安装 Node 时通常附带。本仓装依赖请用 pnpm，勿与 npm 混用。',
+    also: ['package-managers', 'runtime-nodejs', 'installers-path'],
+  },
+  npx: {
+    term: 'npx',
+    brief: '随 Node 附带的命令：按需执行某包中的 CLI，不必先全局安装该包。',
+    also: ['package-managers', 'runtime-nodejs', 'npm'],
+  },
+  uv_pkg: {
+    term: 'uv',
+    brief: 'Python 生态中的高速包/项目管理工具，常作为 pip 工作流的替代；不随 Python 官方安装强制附带。',
+    also: ['package-managers', 'xrk-language-stack', 'xrk-subserver'],
+  },
+  pip: {
+    term: 'pip',
+    brief: 'Python 常用默认包安装工具；与 npm 类似，属于「运行时生态的默认包管理入口」。',
+    also: ['package-managers', 'lang-landscape'],
+  },
+  dhcp: {
+    term: 'DHCP',
+    brief: '动态主机配置协议：接入网络后自动获取 IP、掩码、网关、DNS 等。',
+    also: ['ip-addressing', 'routing-nat'],
+  },
+  firewall: {
+    term: '防火墙',
+    brief: '按规则允许或拒绝数据包（入站/出站）；与 NAT、端口转发常一起配置。',
+    also: ['routing-nat', 'tcp-udp'],
+  },
+  cdn: {
+    term: 'CDN',
+    brief: '内容分发网络：把副本缓存在靠近用户的边缘节点；与源站反向代理分工不同。',
+    also: ['reverse-proxy', 'http-web', 'dns-https', 'net-edge-practice'],
+  },
+  ip_pool: {
+    term: 'IP 池（地址池）',
+    brief: '一组可分配的公网（或出口）地址：动态 NAT、弹性 IP、LB/代理出口、白名单业务常用。',
+    also: ['routing-nat', 'net-edge-practice'],
+  },
+  cloudflare: {
+    term: 'Cloudflare',
+    brief: '常见边缘平台：托管 DNS、可选全球反代（橙云）、CDN、WAF 与 TLS；访客先到边缘再回源。',
+    also: ['net-edge-practice', 'reverse-proxy', 'dns-https'],
+  },
+  anycast: {
+    term: 'Anycast',
+    brief: '同一服务地址在多地通告，流量进入较优的 PoP；解释「全球像连同一个 IP」。',
+    also: ['net-edge-practice', 'reverse-proxy'],
+  },
+  waf: {
+    term: 'WAF',
+    brief: 'Web 应用防火墙：在 HTTP 入口按规则拦截扫描与滥用，常与 CDN/反代同层。',
+    also: ['net-edge-practice', 'reverse-proxy', 'firewall'],
+  },
+  path_filtering: {
+    term: '路径过滤（中间盒）',
+    brief: '中间策略导致部分目的地解析异常、连不上或质量差；排障时按 DNS / TCP / TLS 分层看症状。',
+    also: ['net-edge-practice', 'dns-https', 'routing-nat'],
+  },
+  region_hosting: {
+    term: '地域 / 机房选址',
+    brief: '源站或节点所在区域影响延迟、跨境链路质量与合规；如港/日/新常作东亚中转讨论。',
+    also: ['net-edge-practice', 'network-basics'],
+  },
+  storage_hierarchy: {
+    term: '存储层次',
+    brief: '寄存器 → 缓存 → 内存 → 磁盘：越靠近 CPU 越快越小；解释「算得快但读盘慢」。',
+    also: ['chip-units', 'hw-sw-link', 'os-essence'],
   },
   registry: {
     term: '注册表 / Registry',
@@ -417,12 +487,12 @@ export const GLOSSARY = {
   reverse_proxy: {
     term: '反向代理',
     brief: '站在服务器门口的门面：客户端以为在访问它，它再把请求转给后面的真实服务。',
-    also: ['reverse-proxy'],
+    also: ['reverse-proxy', 'net-edge-practice'],
   },
   forward_proxy: {
     term: '正向代理',
     brief: '更靠近客户端的代理：替「你」出门访问别人，Clash 引擎更接近这一侧。',
-    also: ['reverse-proxy', 'clash'],
+    also: ['reverse-proxy', 'net-edge-practice', 'clash'],
   },
 
   /* —— 第四章 · XRK —— */

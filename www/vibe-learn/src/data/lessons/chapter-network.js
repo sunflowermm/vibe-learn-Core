@@ -1,2 +1,45 @@
 /** 第三章网络章说明 */
-export default "# 第三章 · 计算机网络\n\n> 单机工坊会算数；联网之后，工坊之间开始寄信。  \n> 从「为什么要联网」走到「HTTP / 反向代理」；番外再用同一套词解释 Clash。\n\n## 和前面章节的咬合\n\n| 已学 | 网络章如何接上 |\n|------|----------------|\n| **进程 / 端口**（序章·系统） | 端口区分「同一主机上哪个进程」收数据 |\n| **套接字** | 程序握着的网络门把手 |\n| **终端能跑起服务**（第一章） | 本机监听端口后，才能被浏览器或其它主机访问 |\n| **API / 前后端**（本框） | 多数 Web API 跑在 HTTP 上 |\n\n```mermaid\nflowchart LR\n  API[\"API 与前后端\"] --> HTTP[HTTP]\n  NET[网络是什么] --> STACK[协议栈]\n  STACK --> IP[IP]\n  STACK --> TCP[\"TCP/UDP\"]\n  IP --> ROUTE[\"路由 / NAT\"]\n  IP --> DNS[\"DNS / HTTPS\"]\n  TCP --> HTTP\n  HTTP --> PROXY[反向代理]\n  PROXY -.-> CLASH[\"番外 · 代理引擎\"]\n```\n\n## 建议阅读顺序\n\n1. **网络是什么** — LAN/WAN、带宽延迟、拓扑  \n2. **协议栈** — OSI 教学地图 vs TCP/IP 实用栈  \n3. **IP → TCP/UDP → 路由/NAT** — 找主机、找进程、出网关  \n4. **DNS/HTTPS → HTTP** — 名字、加密、请求响应  \n5. **API 与前后端** 可与 HTTP 对照着读  \n6. **反向代理** — 服务器门口的门面  \n7. **番外 Clash** — 正向代理引擎，对照本框名词  \n\n## 零基础记忆钩\n\n> **IP 找电脑，端口找程序，DNS 找名字，HTTP 说话，代理决定谁替谁出门。**\n";
+export default `# 第三章 · 计算机网络
+
+> 单机具备算与存之后，多机经网络协作。  
+> 主线：为何联网 → 协议栈 → IP/TCP → 路由/NAT/防火墙 → DNS/HTTPS → HTTP → 反向代理 / CDN → **边缘与出口实务**。
+
+## 与前面章节的咬合
+
+| 已学 | 本框落点 |
+|------|----------|
+| 进程 / 套接字（序章） | 端口区分同一主机上的进程 |
+| 网卡作为 I/O（序章） | 帧与包进出主机 |
+| 终端能启动服务（第一章） | 本机监听后可被访问 |
+| API / 前后端（本框） | 多数 Web API 跑在 HTTP 上 |
+
+\`\`\`mermaid
+flowchart LR
+  API[API 与前后端] --> HTTP[HTTP]
+  NET[网络是什么] --> STACK[协议栈]
+  STACK --> IP[IP / DHCP]
+  STACK --> TCP[TCP/UDP]
+  IP --> ROUTE[路由 / NAT / 防火墙]
+  IP --> DNS[DNS / HTTPS]
+  TCP --> HTTP
+  HTTP --> PROXY[反向代理 / CDN]
+  PROXY --> EDGE[边缘实务]
+  ROUTE --> EDGE
+  DNS --> EDGE
+\`\`\`
+
+## 建议阅读顺序
+
+1. **网络是什么** — LAN/WAN、设备角色、拓扑  
+2. **协议栈** — OSI / TCP/IP、封装、ICMP  
+3. **IP（含 DHCP）→ TCP/UDP → 路由/NAT/防火墙**（含 IP 池直觉）  
+4. **DNS/HTTPS → HTTP**  
+5. **API 与前后端** 可与 HTTP 对照  
+6. **反向代理与 CDN**  
+7. **边缘与出口实务** — IP 池产品化、Cloudflare、地域、路径过滤症状、正向代理  
+8. **番外 Clash** — 本机代理引擎选路  
+
+## 记忆钩
+
+> IP 找主机，DHCP 领地址，端口找进程，DNS 找名字，HTTPS 加密，HTTP 说话，反代管门口，CDN 把副本放到近处；上线再认清 **入口 IP / 源站 / 出口池**，以及客户端代理改的是哪一侧路径。
+`;

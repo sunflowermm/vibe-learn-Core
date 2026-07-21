@@ -30,6 +30,8 @@ flowchart TB
 主服契约由 \`engines\` / \`packageManager\` 约束。  
 子服登记表：\`src/utils/subserver-runtimes.js\`。子服侧不提供 Node runtime（与主服职责重叠）。
 
+**包管理器对照（与第一章呼应）：** 安装 Node 通常自带 **npm / npx**（默认工具）；本仓选用 **pnpm**（替代实现）。Python 子服常见 **uv**（相对 pip 的替代品）。详见 **包管理器** 课。
+
 ## 来自编译型语言的对照
 
 | 既有习惯 | 本仓对应 |

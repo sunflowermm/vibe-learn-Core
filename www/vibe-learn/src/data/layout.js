@@ -12,8 +12,8 @@ export const LAYOUT = {
   frameEnv: { x: 40, y: -540, width: 2920, height: 720 },
   /* 第二章 · 计算机语言 */
   frameLang: { x: 2640, y: -540, width: 1080, height: 720 },
-  /* 第三章 · 计算机网络 */
-  frameNet: { x: 40, y: 280, width: 2680, height: 740 },
+  /* 第三章 · 网络 */
+  frameNet: { x: 40, y: 280, width: 3020, height: 820 },
   /* 第四章 · XRK 实践（融会枢纽） */
   frameXrk: { x: 2840, y: 200, width: 1680, height: 980 },
   /* 第五章 · 人工智能 */
@@ -53,7 +53,8 @@ export const LAYOUT = {
     'routing-nat': { x: 1640, y: TOP },
     'dns-https': { x: 1640, y: 460 },
     'http-web': { x: 2040, y: 260 },
-    'reverse-proxy': { x: 2360, y: 280 },
+    'reverse-proxy': { x: 2360, y: 200 },
+    'net-edge-practice': { x: 2360, y: 480 },
 
     /* 第四章 · XRK 融会 */
     'xrk-overview': { x: 48, y: TOP },
