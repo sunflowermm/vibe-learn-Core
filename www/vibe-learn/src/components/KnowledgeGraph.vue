@@ -169,17 +169,18 @@ function miniColor(node) {
 }
 
 .graph-wrap :deep(.vue-flow__edges) {
+  /* 连线在章框之上：章框仅描边无填充，避免盖住框内边 */
   z-index: 2 !important;
   pointer-events: none !important;
 }
 
 .graph-wrap :deep(.vue-flow__edge-labels) {
-  z-index: 3 !important;
+  z-index: 4 !important;
   pointer-events: none !important;
 }
 
 .graph-wrap :deep(.vue-flow__nodes) {
-  z-index: 5 !important;
+  z-index: 3 !important;
 }
 
 .graph-wrap :deep(.vue-flow__node) {

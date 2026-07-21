@@ -25,8 +25,8 @@ defineProps({
   box-sizing: border-box;
   border-radius: 18px;
   border: 2px dashed var(--chapter-border);
-  background: var(--chapter-bg);
-  /* 框体装饰；拖动只靠 .chapter__drag（节点外壳另设穿透） */
+  /* 必须透明：节点层在连线之上，有底色会把框内边压糊 */
+  background: transparent;
   pointer-events: none;
 }
 
