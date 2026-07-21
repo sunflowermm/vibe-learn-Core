@@ -33,7 +33,38 @@ const toneStyle = computed(() => ({
     <Handle id="top-t" type="target" :position="Position.Top" class="card__handle card__handle--t" :connectable="false" />
     <Handle id="bottom-t" type="target" :position="Position.Bottom" class="card__handle card__handle--t" :connectable="false" />
 
-    <div class="card__tag">{{ data.tag }}</div>
+    <div class="card__tag">
+      <span>{{ data.tag }}</span>
+      <span v-if="data.bookmarked || data.hasNote" class="card__marks" aria-hidden="true">
+        <svg
+          v-if="data.bookmarked"
+          class="card__mark card__mark--bm"
+          width="12"
+          height="12"
+          viewBox="0 0 16 16"
+        >
+          <path
+            d="M8 1.8l1.7 3.5 3.8.55-2.75 2.7.65 3.8L8 10.6l-3.4 1.75.65-3.8L2.5 5.85l3.8-.55L8 1.8z"
+            fill="currentColor"
+          />
+        </svg>
+        <svg
+          v-if="data.hasNote"
+          class="card__mark card__mark--note"
+          width="12"
+          height="12"
+          viewBox="0 0 16 16"
+          fill="none"
+        >
+          <path
+            d="M3.5 2.5h7.2L13.5 5.3v8.2a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1v-10a1 1 0 0 1 1-1Z"
+            stroke="currentColor"
+            stroke-width="1.4"
+          />
+          <path d="M5.2 8.2h5.5M5.2 10.6h3.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+        </svg>
+      </span>
+    </div>
     <div class="card__title">{{ data.label }}</div>
     <div class="card__sub">{{ data.subtitle }}</div>
   </div>
@@ -76,12 +107,37 @@ const toneStyle = computed(() => ({
 }
 
 .card__tag {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   margin-bottom: 8px;
   color: rgba(255, 255, 255, 0.82);
+}
+
+.card__marks {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.card__mark {
+  display: block;
+  opacity: 0.95;
+}
+
+.card__mark--bm {
+  color: #fde68a;
+}
+
+.card__mark--note {
+  color: #bae6fd;
 }
 
 .card.stub .card__tag {

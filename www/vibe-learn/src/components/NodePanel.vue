@@ -2,7 +2,9 @@
 import { computed, nextTick, ref, watch } from 'vue';
 import NetworkLab from './NetworkLab.vue';
 import LessonBody from './LessonBody.vue';
+import PanelNotes from './PanelNotes.vue';
 import TermsBlock from './TermsBlock.vue';
+import { useUserLibrary } from '../composables/useUserLibrary.js';
 import { resolveNodes } from '../data/nodes.js';
 
 const props = defineProps({
@@ -14,6 +16,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'navigate']);
 
+const library = useUserLibrary();
 const scrollEl = ref(null);
 const titleEl = ref(null);
 
@@ -22,6 +25,12 @@ const prereqNodes = computed(() => resolveNodes(props.node?.prereqs));
 const nextNodes = computed(() => resolveNodes(props.node?.next));
 const extendNodes = computed(() =>
   resolveNodes([...(props.node?.chapterOut || []), ...(props.node?.sideOut || [])])
+);
+const bookmarked = computed(() =>
+  props.node?.id ? library.isBookmarked(props.node.id) : false
+);
+const hasNote = computed(() =>
+  props.node?.id ? Boolean(library.noteOf(props.node.id).trim()) : false
 );
 
 watch(
@@ -32,13 +41,20 @@ watch(
     titleEl.value?.focus({ preventScroll: true });
   }
 );
+
+function onToggleBookmark() {
+  if (props.node?.id) library.toggleBookmark(props.node.id);
+}
 </script>
 
 <template>
   <div v-if="node" class="panel" role="article" :aria-labelledby="`panel-title-${node.id}`">
     <header class="panel__head">
       <div class="panel__head-text">
-        <p class="panel__tag">{{ node.tag }}</p>
+        <div class="panel__meta-row">
+          <p class="panel__tag">{{ node.tag }}</p>
+          <span v-if="hasNote" class="panel__chip-soft">已有笔记</span>
+        </div>
         <h2
           :id="`panel-title-${node.id}`"
           ref="titleEl"
@@ -49,15 +65,35 @@ watch(
         </h2>
         <p class="panel__sub">{{ node.subtitle }}</p>
       </div>
-      <button
-        class="panel__close"
-        type="button"
-        aria-label="关闭讲解面板"
-        title="Esc"
-        @click="emit('close')"
-      >
-        Esc
-      </button>
+      <div class="panel__head-actions">
+        <button
+          type="button"
+          class="panel__icon-btn"
+          :class="{ active: bookmarked }"
+          :aria-pressed="bookmarked"
+          :aria-label="bookmarked ? '取消收藏' : '收藏到书架'"
+          :title="bookmarked ? '取消收藏' : '收藏到本机书架'"
+          @click="onToggleBookmark"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+            <path
+              d="M8 1.8l1.7 3.5 3.8.55-2.75 2.7.65 3.8L8 10.6l-3.4 1.75.65-3.8L2.5 5.85l3.8-.55L8 1.8z"
+              :fill="bookmarked ? 'currentColor' : 'none'"
+              stroke="currentColor"
+              stroke-width="1.25"
+            />
+          </svg>
+        </button>
+        <button
+          class="panel__icon-btn panel__icon-btn--ghost"
+          type="button"
+          aria-label="关闭讲解面板"
+          title="Esc"
+          @click="emit('close')"
+        >
+          <span class="panel__esc">Esc</span>
+        </button>
+      </div>
     </header>
 
     <div ref="scrollEl" class="panel__scroll">
@@ -111,6 +147,8 @@ watch(
       <LessonBody v-if="node.markdown" :markdown="node.markdown" />
       <NetworkLab v-if="showLab" />
     </div>
+
+    <PanelNotes :node-id="node.id" />
   </div>
 </template>
 
@@ -126,12 +164,20 @@ watch(
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1.25rem 1.4rem 1rem;
+  padding: 1.15rem 1.25rem 0.95rem;
   border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel-bg) 88%, transparent);
 }
 
 .panel__head-text {
   min-width: 0;
+}
+
+.panel__meta-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .panel__tag {
@@ -143,8 +189,17 @@ watch(
   color: var(--signal);
 }
 
+.panel__chip-soft {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--signal);
+}
+
 .panel__title {
-  margin: 0.25rem 0 0;
+  margin: 0.3rem 0 0;
   font-family: var(--font-display);
   font-size: clamp(1.35rem, 2vw, 1.65rem);
   font-weight: 700;
@@ -164,30 +219,66 @@ watch(
   font-size: 0.9rem;
 }
 
-.panel__close {
-  align-self: flex-start;
+.panel__head-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
   flex-shrink: 0;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  padding: 0.35rem 0.65rem;
-  border-radius: 8px;
-  color: var(--mist-dim);
-  border: 1px solid var(--line);
-  transition:
-    color 0.2s ease,
-    border-color 0.2s ease;
 }
 
-.panel__close:hover {
+.panel__icon-btn {
+  display: inline-grid;
+  place-items: center;
+  min-width: 2.15rem;
+  height: 2.15rem;
+  padding: 0 0.45rem;
+  border-radius: 11px;
+  border: 1px solid var(--line);
+  background: var(--ink-3);
+  color: var(--mist-dim);
+  cursor: pointer;
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.panel__icon-btn:hover {
+  color: var(--amber);
+  border-color: color-mix(in srgb, var(--amber) 40%, var(--line));
+}
+
+.panel__icon-btn.active {
+  color: var(--amber);
+  border-color: color-mix(in srgb, var(--amber) 45%, transparent);
+  background: color-mix(in srgb, var(--amber) 14%, transparent);
+}
+
+.panel__icon-btn:active {
+  transform: scale(0.96);
+}
+
+.panel__icon-btn--ghost {
+  min-width: auto;
+  padding: 0 0.55rem;
+}
+
+.panel__icon-btn--ghost:hover {
   color: var(--mist);
   border-color: var(--accent);
+}
+
+.panel__esc {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
 }
 
 .panel__scroll {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 1.25rem 1.65rem 2.75rem;
+  padding: 1.25rem 1.5rem 1.5rem;
   scrollbar-width: thin;
   scrollbar-color: var(--accent-soft) transparent;
   overscroll-behavior: contain;
@@ -234,7 +325,7 @@ watch(
   border-radius: 999px;
   color: var(--mist);
   background: var(--ink-3);
-  border: 1px solid color-mix(in srgb, var(--mist) 14%, transparent);
+  border: 1px solid var(--line);
   transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
 }
 

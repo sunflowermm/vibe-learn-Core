@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import KnowledgeGraph from './components/KnowledgeGraph.vue';
 import NodePanel from './components/NodePanel.vue';
+import UserLibraryDrawer from './components/UserLibraryDrawer.vue';
 import { useBlobity } from './composables/useBlobity.js';
 import {
   clampGraphHeight,
@@ -12,6 +13,7 @@ import {
   readGraphHeight,
   readPanelWidth,
 } from './composables/usePanelResize.js';
+import { useUserLibrary } from './composables/useUserLibrary.js';
 import { getNodeById, countTopics } from './data/nodes.js';
 
 const THEME_KEY = 'vibe-learn-theme';
@@ -49,6 +51,14 @@ const theme = ref(readTheme());
 /** 面板 chip 跳转时递增，驱动图谱聚焦该节点 */
 const focusNonce = ref(0);
 const activeNode = computed(() => (activeId.value ? getNodeById(activeId.value) : null));
+const libraryOpen = ref(false);
+const library = useUserLibrary();
+const {
+  bookmarkedIds,
+  notedIds,
+  bookmarkCount,
+  noteCount,
+} = library;
 
 const panelWidth = ref(readPanelWidth());
 const graphHeight = ref(readGraphHeight());
@@ -83,7 +93,10 @@ watch(
   { immediate: true }
 );
 
-watch(activeId, (id) => writeNodeToUrl(id), { immediate: true });
+watch(activeId, (id) => {
+  writeNodeToUrl(id);
+  if (id) library.markVisited(id);
+}, { immediate: true });
 
 function toggleTheme() {
   theme.value = theme.value === 'dark' ? 'light' : 'dark';
@@ -103,7 +116,13 @@ function clearSelection() {
 }
 
 function onKey(e) {
-  if (e.key === 'Escape') clearSelection();
+  if (e.key === 'Escape') {
+    if (libraryOpen.value) {
+      libraryOpen.value = false;
+      return;
+    }
+    clearSelection();
+  }
 }
 
 function syncLayoutMode() {
@@ -185,6 +204,7 @@ function onSplitKey(e) {
 }
 
 onMounted(() => {
+  library.init();
   window.addEventListener('keydown', onKey);
   window.addEventListener('resize', syncLayoutMode);
   syncLayoutMode();
@@ -208,6 +228,28 @@ onUnmounted(() => {
       <div class="topbar-actions">
         <button
           type="button"
+          class="theme-toggle shelf-launch"
+          data-blobity
+          :aria-pressed="libraryOpen"
+          aria-label="打开我的书架"
+          title="书签、笔记与备份"
+          @click="libraryOpen = true"
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path
+              d="M3.2 2.5h3.8c.55 0 1.05.25 1.4.7L9 4a.8.8 0 0 0 .6.3h3.2A1.2 1.2 0 0 1 14 5.5V13a1.2 1.2 0 0 1-1.2 1.2H3.2A1.2 1.2 0 0 1 2 13V3.7A1.2 1.2 0 0 1 3.2 2.5Z"
+              stroke="currentColor"
+              stroke-width="1.3"
+            />
+            <path d="M5 8h6M5 10.5h3.8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+          </svg>
+          书架
+          <span v-if="bookmarkCount || noteCount" class="topbar-badge">
+            {{ bookmarkCount + noteCount }}
+          </span>
+        </button>
+        <button
+          type="button"
           class="theme-toggle"
           data-blobity
           :aria-pressed="theme === 'dark'"
@@ -227,6 +269,8 @@ onUnmounted(() => {
           :active-id="activeId"
           :theme="theme"
           :focus-nonce="focusNonce"
+          :bookmarked-ids="bookmarkedIds"
+          :noted-ids="notedIds"
           @select="selectNode"
           @clear="clearSelection"
         />
@@ -257,5 +301,11 @@ onUnmounted(() => {
         </div>
       </aside>
     </div>
+
+    <UserLibraryDrawer
+      :open="libraryOpen"
+      @close="libraryOpen = false"
+      @navigate="navigateNode"
+    />
   </div>
 </template>

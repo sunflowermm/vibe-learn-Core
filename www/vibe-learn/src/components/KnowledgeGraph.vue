@@ -18,6 +18,10 @@ const props = defineProps({
   theme: { type: String, default: 'light' },
   /** 面板导航时递增，触发聚焦选中节点 */
   focusNonce: { type: Number, default: 0 },
+  /** 本机书签节点 id */
+  bookmarkedIds: { type: Array, default: () => [] },
+  /** 有笔记的节点 id */
+  notedIds: { type: Array, default: () => [] },
 });
 
 const emit = defineEmits(['select', 'clear']);
@@ -156,23 +160,33 @@ watch(
 );
 
 watch(
+  () => [props.bookmarkedIds, props.notedIds],
+  () => {
+    const bm = new Set(props.bookmarkedIds || []);
+    const nt = new Set(props.notedIds || []);
+    for (const n of nodes.value) {
+      if (n.data?.kind !== 'topic') continue;
+      const bookmarked = bm.has(n.id);
+      const hasNote = nt.has(n.id);
+      if (n.data.bookmarked !== bookmarked || n.data.hasNote !== hasNote) {
+        n.data = { ...n.data, bookmarked, hasNote };
+      }
+    }
+  },
+  { immediate: true, deep: true }
+);
+
+watch(
   () => props.focusNonce,
   async (nonce) => {
     if (!nonce || !props.activeId) return;
     await nextTick();
     const ch = chapterIdOf(props.activeId);
-    const members = ch
-      ? chapterMemberIds(ch)
-      : neighborIds(props.activeId);
-    const ids = new Set(members);
-    for (const e of edges.value) {
-      if (members.has(e.source) || members.has(e.target)) {
-        ids.add(e.source);
-        ids.add(e.target);
-      }
-    }
+    const ids = ch
+      ? [...chapterMemberIds(ch)]
+      : [...neighborIds(props.activeId)];
     fitView({
-      nodes: [...ids],
+      nodes: ids,
       padding: 0.28,
       duration: 420,
       maxZoom: 1.05,
@@ -396,6 +410,13 @@ function fitNeighborhood() {
     0 0 0 2px rgba(255, 255, 255, 0.32),
     var(--shadow-node);
   filter: brightness(1.03);
+}
+
+.graph-wrap :deep(.vue-flow__node.is-bridge-peer .card) {
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--accent) 55%, #fff),
+    var(--shadow-node);
+  filter: brightness(1.02);
 }
 
 .graph-wrap :deep(.vue-flow__node-chapter.is-chapter-frame) {

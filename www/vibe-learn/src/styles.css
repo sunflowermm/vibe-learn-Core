@@ -176,6 +176,10 @@ button:focus-visible {
 }
 
 .theme-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   padding: 0.4rem 0.85rem;
   border-radius: 999px;
   border: 1px solid var(--line);
@@ -187,6 +191,24 @@ button:focus-visible {
     border-color 0.2s ease,
     color 0.2s ease,
     background 0.2s ease;
+}
+
+.shelf-launch[aria-pressed='true'] {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.topbar-badge {
+  display: inline-block;
+  margin-left: 0.1rem;
+  min-width: 1.1rem;
+  padding: 0.05rem 0.3rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  background: var(--accent);
+  color: #fff;
+  font-variant-numeric: tabular-nums;
 }
 
 .theme-toggle:hover {
