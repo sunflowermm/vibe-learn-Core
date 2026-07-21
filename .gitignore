@@ -1,0 +1,10 @@
+# vibe-learn-Core 独立仓：勿提交依赖与构建产物
+www/*/node_modules/
+www/*/dist/
+www/*/.vite/
+**/.env
+**/.env.*
+*.log
+.DS_Store
+.cursor-list.tmp
+.claude-list.tmp
