@@ -72,6 +72,7 @@ import { LAYOUT } from './layout.js';
 import { toneOf } from './tones.js';
 import {
   assignBundleOffsets,
+  assignFaninOffsets,
   assignFanoutOffsets,
   inferHandles,
   pathKindFor,
@@ -1126,6 +1127,8 @@ export function buildFlowNodes() {
 export function buildFlowEdges() {
   const posMap = getOriginPositions();
   const chapterOf = new Map(knowledgeNodes.map((n) => [n.id, n.parentId]));
+  const CARD_CX = 125;
+  const CARD_CY = 48;
 
   const edges = knowledgeEdges.map((e) => {
     const sp = posMap.get(e.source);
@@ -1135,7 +1138,6 @@ export function buildFlowEdges() {
         ? inferHandles(sp, tp)
         : { sourceHandle: e.sourceHandle || 'right', targetHandle: e.targetHandle || 'left' };
 
-    /* 同章：完全按几何选边；跨章：保留人工上下出边意图，否则也按几何 */
     const sameChapter = chapterOf.get(e.source) === chapterOf.get(e.target);
     let sourceHandle = inferred.sourceHandle;
     let targetHandle = inferred.targetHandle;
@@ -1148,6 +1150,14 @@ export function buildFlowEdges() {
       sourceHandle = e.sourceHandle;
       targetHandle = e.targetHandle;
     }
+
+    const dist =
+      sp && tp
+        ? Math.hypot(
+            tp.x + CARD_CX - (sp.x + CARD_CX),
+            tp.y + CARD_CY - (sp.y + CARD_CY)
+          )
+        : 0;
 
     const branch = e.branch || 'main';
     const tone = toneOf(e.target);
@@ -1164,17 +1174,18 @@ export function buildFlowEdges() {
       data: {
         branch,
         color: tone.edge,
-        pathKind: pathKindFor(branch, sameChapter),
+        pathKind: pathKindFor(branch, sameChapter, dist),
         label: e.label,
       },
-      interactive: false,
+      interactive: true,
       focusable: false,
-      zIndex: 2,
+      zIndex: 1,
     };
   });
 
   assignBundleOffsets(edges);
   assignFanoutOffsets(edges, posMap);
+  assignFaninOffsets(edges);
   return edges;
 }
 

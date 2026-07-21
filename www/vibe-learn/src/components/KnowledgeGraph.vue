@@ -154,7 +154,7 @@ function resetLayout() {
       :edges-updatable="false"
       :connection-mode="ConnectionMode.Loose"
       :elements-selectable="true"
-      :elevate-edges-on-select="true"
+      :elevate-edges-on-select="false"
       :select-nodes-on-drag="false"
       :multi-selection-key-code="null"
       :pan-on-drag="true"
@@ -204,17 +204,16 @@ function resetLayout() {
 }
 
 .graph-wrap :deep(.vue-flow__edges) {
+  z-index: 1 !important;
+}
+
+.graph-wrap :deep(.vue-flow__edge-labels) {
   z-index: 2 !important;
   pointer-events: none !important;
 }
 
-.graph-wrap :deep(.vue-flow__edge-labels) {
-  z-index: 4 !important;
-  pointer-events: none !important;
-}
-
 .graph-wrap :deep(.vue-flow__nodes) {
-  z-index: 3 !important;
+  z-index: 5 !important;
 }
 
 .graph-wrap :deep(.vue-flow__node) {
@@ -226,7 +225,7 @@ function resetLayout() {
 }
 
 .graph-wrap :deep(.vue-flow__node-chapter) {
-  z-index: 1 !important;
+  z-index: 0 !important;
   padding: 0 !important;
   border: none !important;
   background: transparent !important;
@@ -244,10 +243,23 @@ function resetLayout() {
   cursor: grabbing;
 }
 
+/* 选中某节点时：弱化无关连线，突出相关边 */
+.graph-wrap :deep(.vue-flow__edges:has(.vue-flow__edge.selected) .vue-flow__edge:not(.selected) path) {
+  stroke-opacity: 0.12 !important;
+}
+
+.graph-wrap :deep(.vue-flow__edges:has(.vue-flow__edge.selected) .vue-flow__edge.selected path) {
+  stroke-opacity: 1 !important;
+}
+
 .graph-wrap :deep(.vue-flow__edge-path) {
   stroke-linecap: round;
   pointer-events: none;
   transition: stroke-opacity 0.2s ease, stroke-width 0.2s ease;
+}
+
+.graph-wrap :deep(.vue-flow__edge) {
+  pointer-events: stroke;
 }
 
 .graph-wrap :deep(.vue-flow__edge.animated path) {

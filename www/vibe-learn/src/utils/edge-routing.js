@@ -1,6 +1,5 @@
 /**
- * 图谱连线路由辅助：选手柄、并线偏移、路径类型
- * 布局仍是绝对坐标；这里只改善「怎么画」
+ * 图谱连线路由：手柄推断、并线/扇出偏移、路径类型
  */
 
 const CARD_W = 250;
@@ -17,43 +16,39 @@ export function inferHandles(a, b) {
   const by = b.y + CARD_H / 2;
   const dx = bx - ax;
   const dy = by - ay;
+  const adx = Math.abs(dx);
+  const ady = Math.abs(dy);
 
-  /* 明显横向 */
-  if (Math.abs(dx) > Math.abs(dy) * 1.15) {
+  if (adx > ady * 1.05) {
     return dx >= 0
       ? { sourceHandle: 'right', targetHandle: 'left' }
       : { sourceHandle: 'left', targetHandle: 'right' };
   }
-  /* 明显纵向 */
-  if (Math.abs(dy) > Math.abs(dx) * 1.15) {
+  if (ady > adx * 1.05) {
     return dy >= 0
       ? { sourceHandle: 'bottom', targetHandle: 'top' }
       : { sourceHandle: 'top', targetHandle: 'bottom' };
   }
-  /* 对角线：优先右→左（阅读方向），必要时上下 */
-  if (Math.abs(dx) >= Math.abs(dy)) {
-    return dx >= 0
-      ? { sourceHandle: 'right', targetHandle: 'left' }
-      : { sourceHandle: 'left', targetHandle: 'right' };
-  }
-  return dy >= 0
-    ? { sourceHandle: 'bottom', targetHandle: 'top' }
-    : { sourceHandle: 'top', targetHandle: 'bottom' };
+  /* 近似对角：优先水平出边，减少竖线穿越卡片 */
+  return dx >= 0
+    ? { sourceHandle: 'right', targetHandle: 'left' }
+    : { sourceHandle: 'left', targetHandle: 'right' };
 }
 
 /**
- * 同章内用正交折线；跨章/番外用贝塞尔
+ * 同章与中短距跨章用正交折线；仅长距 / 番外用贝塞尔
  * @param {string} branch
  * @param {boolean} sameChapter
+ * @param {number} [dist]
  */
-export function pathKindFor(branch, sameChapter) {
+export function pathKindFor(branch, sameChapter, dist = 0) {
   if (branch === 'side') return 'bezier';
-  if (!sameChapter) return 'bezier';
-  return 'smoothstep';
+  if (sameChapter) return 'smoothstep';
+  if (dist > 0 && dist < 900) return 'smoothstep';
+  return 'bezier';
 }
 
 /**
- * 为「同起终点+同手柄」的边分配正交偏移，避免完全重叠
  * @param {Array<{ id: string, source: string, target: string, sourceHandle?: string, targetHandle?: string, data?: object }>} edges
  */
 export function assignBundleOffsets(edges) {
@@ -69,7 +64,7 @@ export function assignBundleOffsets(edges) {
     const n = group.length;
     group.forEach((e, i) => {
       const center = (n - 1) / 2;
-      const bundleOffset = n <= 1 ? 0 : (i - center) * 18;
+      const bundleOffset = n <= 1 ? 0 : (i - center) * 26;
       e.data = {
         ...(e.data || {}),
         bundleIndex: i,
@@ -82,7 +77,6 @@ export function assignBundleOffsets(edges) {
 }
 
 /**
- * 从 source 扇出的边：若手柄相同，按目标角度微调标签偏移方向
  * @param {Array} edges
  * @param {Map<string, {x:number,y:number}>} posMap
  */
@@ -97,11 +91,15 @@ export function assignFanoutOffsets(edges, posMap) {
   }
   for (const group of bySource.values()) {
     if (group.length < 2) continue;
-    const src = posMap.get(group[0].source);
-    if (!src) continue;
     const ranked = [...group].sort((a, b) => {
       const pa = posMap.get(a.target);
       const pb = posMap.get(b.target);
+      const handle = group[0].sourceHandle || 'right';
+      if (handle === 'top' || handle === 'bottom') {
+        const xa = pa ? pa.x : 0;
+        const xb = pb ? pb.x : 0;
+        return xa - xb;
+      }
       const ya = pa ? pa.y : 0;
       const yb = pb ? pb.y : 0;
       return ya - yb;
@@ -109,12 +107,11 @@ export function assignFanoutOffsets(edges, posMap) {
     const n = ranked.length;
     ranked.forEach((e, i) => {
       const center = (n - 1) / 2;
-      const fanOffset = (i - center) * 22;
+      const fanOffset = (i - center) * 28;
       const existing = e.data?.bundleOffset || 0;
       e.data = {
         ...(e.data || {}),
         fanOffset,
-        /* 扇出优先于同边并线；两者都有时叠加一点 */
         routeOffset: existing + fanOffset,
       };
     });
@@ -131,13 +128,66 @@ export function assignFanoutOffsets(edges, posMap) {
 }
 
 /**
+ * 同目标汇入的边再错开一层，减轻「多线压在同一卡片顶」
+ * @param {Array} edges
+ */
+export function assignFaninOffsets(edges) {
+  /** @type {Map<string, typeof edges>} */
+  const byTarget = new Map();
+  for (const e of edges) {
+    const key = `${e.target}|${e.targetHandle || 'left'}`;
+    const list = byTarget.get(key);
+    if (list) list.push(e);
+    else byTarget.set(key, [e]);
+  }
+  for (const group of byTarget.values()) {
+    if (group.length < 2) continue;
+    const n = group.length;
+    group.forEach((e, i) => {
+      const center = (n - 1) / 2;
+      const fanIn = (i - center) * 14;
+      const base = e.data?.routeOffset || 0;
+      e.data = {
+        ...(e.data || {}),
+        fanInOffset: fanIn,
+        routeOffset: base + fanIn,
+      };
+    });
+  }
+  return edges;
+}
+
+/**
  * @param {number} dx
  * @param {number} dy
  */
 export function curvatureForDistance(dx, dy) {
   const dist = Math.hypot(dx, dy);
-  if (dist < 280) return 0.22;
-  if (dist < 700) return 0.35;
-  if (dist < 1400) return 0.48;
-  return 0.58;
+  if (dist < 320) return 0.12;
+  if (dist < 700) return 0.22;
+  if (dist < 1200) return 0.32;
+  return 0.4;
+}
+
+/**
+ * smoothstep 中点沿主轴法线错开，避免多条折线叠在同一走廊
+ * @param {number} sourceX
+ * @param {number} sourceY
+ * @param {number} targetX
+ * @param {number} targetY
+ * @param {string} sourcePosition
+ * @param {number} routeOffset
+ */
+export function smoothStepCenter(sourceX, sourceY, targetX, targetY, sourcePosition, routeOffset) {
+  const mx = (sourceX + targetX) / 2;
+  const my = (sourceY + targetY) / 2;
+  if (!routeOffset) return { centerX: mx, centerY: my };
+  const horizontal =
+    sourcePosition === 'left' ||
+    sourcePosition === 'right' ||
+    Math.abs(targetX - sourceX) >= Math.abs(targetY - sourceY);
+  if (horizontal) {
+    return { centerX: mx, centerY: my + routeOffset };
+  }
+  return { centerX: mx + routeOffset, centerY: my };
 }
