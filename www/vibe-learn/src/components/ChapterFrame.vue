@@ -1,13 +1,22 @@
 <script setup>
-defineProps({
+import { computed } from 'vue';
+
+const props = defineProps({
   data: { type: Object, required: true },
   selected: { type: Boolean, default: false },
 });
+
+/** 视觉高亮来自 data.lit（勿用 selected，避免多选拖拽） */
+const lit = computed(() => Boolean(props.data?.lit) || props.selected);
 </script>
 
 <template>
-  <div class="chapter" :class="{ selected }">
-    <header class="chapter__head chapter__drag" title="拖这里移动整章（框内节点一起动）" data-blobity>
+  <div class="chapter" :class="{ selected: lit }">
+    <header
+      class="chapter__head chapter__drag"
+      title="拖标题条才移动整章；拖知识点卡片只动自己"
+      data-blobity
+    >
       <span class="chapter__tag">{{ data.tag }}</span>
       <div class="chapter__text">
         <h3 class="chapter__title">{{ data.label }}</h3>

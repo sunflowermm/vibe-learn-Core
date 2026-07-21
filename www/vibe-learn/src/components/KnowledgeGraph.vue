@@ -136,8 +136,15 @@ function syncHighlight(activeId, hoveredId) {
 
   for (const n of nodes.value) {
     if (n.data?.kind === 'chapter' || n.type === 'chapter') {
-      n.selected = n.id === chapterId;
-      n.class = chapterId && n.id === chapterId ? 'is-chapter-frame' : '';
+      /**
+       * 章框高亮只用 class，切勿写 selected。
+       * Vue Flow 拖拽会带动所有 selected 节点；点选卡片时若章框也被 selected，
+       * 拖一张卡就会整章（框+同章其它卡）一起跑。
+       */
+      if (n.selected) n.selected = false;
+      const lit = Boolean(chapterId && n.id === chapterId);
+      n.class = lit ? 'is-chapter-frame' : '';
+      if (n.data?.lit !== lit) n.data = { ...n.data, lit };
       continue;
     }
     const on = n.id === activeId;
@@ -421,6 +428,11 @@ function fitNeighborhood() {
 
 .graph-wrap :deep(.vue-flow__node-chapter.is-chapter-frame) {
   opacity: 1 !important;
+}
+
+.graph-wrap :deep(.vue-flow__node-chapter.is-chapter-frame .chapter) {
+  border-color: var(--accent);
+  border-style: solid;
 }
 
 .graph-wrap :deep(.vue-flow__node.dragging) {
