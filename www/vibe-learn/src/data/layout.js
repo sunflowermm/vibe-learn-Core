@@ -1,34 +1,134 @@
 /**
- * 章框顶栏安全区：标题条约 120×440，框内节点须避开。
+ * 章框与卡片布局。
+ * 连线原则：方块迁就边（见 layout-from-edges.js），不靠绕障折线躲卡片。
  */
+import {
+  chainRowPositions,
+  hubSpokePositions,
+  snakeRowPositions,
+} from '../utils/layout-from-edges.js';
+
 const TOP = 120;
 const COL0 = 480;
 const GAP = 340;
 
+/* —— 第五章 AI：蛇形折返，行末竖线接到下一行 —— */
+const AI_SNAKE = snakeRowPositions(
+  [
+    [
+      'ai-what',
+      'ai-llm-era',
+      'ai-model-types',
+      'ai-arch-beyond',
+      'ai-transformer',
+      'ai-finetune',
+      'ai-chat-era',
+    ],
+    [
+      'ai-openai-protocol',
+      'ai-tool-calling',
+      'ai-agent-birth',
+      'ai-rag',
+      'ai-agentic-rag',
+      'ai-rag-shift',
+      'ai-mcp',
+    ],
+    [
+      'ai-protocol-forks',
+      'ai-rules',
+      'ai-skills',
+      'ai-subagent',
+      'ai-cli',
+      'ai-agents-md',
+    ],
+  ],
+  { originX: 48, originY: TOP, colGap: 300, rowGap: 280 }
+);
+
+/* —— 第二章语言：概念链 + 枢纽侧列，扇出不交叉 —— */
+const LANG_CONCEPTS = chainRowPositions(
+  [
+    'lang-what-is-language',
+    'lang-library-framework',
+    'lang-tech-stack',
+    'lang-tech-selection',
+  ],
+  { x: 48, y: TOP, gap: 340 }
+);
+
+const LANG_MODEL = {
+  'lang-compiled-runtime': { x: 48, y: 320 },
+  /* 落在「技术选型」正下方，概念→版图竖线短、不斜穿 */
+  'lang-landscape': { x: 48 + 340 * 3, y: 320 },
+};
+
+const LANG_SPOKES = hubSpokePositions(
+  'lang-landscape',
+  [
+    'lang-javascript',
+    'lang-typescript',
+    'lang-python',
+    'lang-go',
+    'lang-rust',
+    'lang-java',
+    'lang-csharp',
+    'lang-php',
+    'lang-c',
+  ],
+  {
+    hub: LANG_MODEL['lang-landscape'],
+    childX: 48 + 340 * 3 + 380,
+    childGap: 108,
+    align: 'top',
+  }
+);
+
+const LANG_TOPICS = {
+  ...LANG_CONCEPTS,
+  ...LANG_MODEL,
+  ...LANG_SPOKES,
+  /* 落地汇入：放在侧列下方，竖线接 landscape / js / python */
+  'lang-to-runtime': { x: LANG_SPOKES['lang-javascript'].x, y: LANG_SPOKES['lang-c'].y + 130 },
+};
+
+const langMaxY = Math.max(...Object.values(LANG_TOPICS).map((p) => p.y));
+const langMaxX = Math.max(...Object.values(LANG_TOPICS).map((p) => p.x));
+const aiMaxY = Math.max(...Object.values(AI_SNAKE).map((p) => p.y));
+const aiMaxX = Math.max(...Object.values(AI_SNAKE).map((p) => p.x));
+
 export const LAYOUT = {
-  /* 序章 · 认识计算机 */
   frameMachine: { x: 40, y: -1180, width: 1680, height: 560 },
-  /* 第一章 · 环境与终端 */
   frameEnv: { x: 40, y: -540, width: 2920, height: 720 },
-  /* 第二章 · 计算机语言 · 概念行 + 语言网格 */
-  frameLang: { x: 2640, y: -540, width: 2480, height: 1420 },
-  /* 第三章 · 网络 */
+  /* 语言章：侧列拉高，框贴内容 */
+  frameLang: {
+    x: 2640,
+    y: -540,
+    width: Math.ceil(langMaxX + 320),
+    height: Math.ceil(langMaxY + 200),
+  },
   frameNet: { x: 40, y: 280, width: 3020, height: 820 },
-  /* 第四章 · XRK 实践（融会枢纽）— 右移避开语言框 */
-  frameXrk: { x: 5000, y: 200, width: 1680, height: 980 },
-  /* 第五章 · 人工智能 */
-  frameAi: { x: 40, y: 1280, width: 6800, height: 1180 },
-  /* 番外 */
-  frameClash: { x: 80, y: 2620, width: 1520, height: 420 },
+  /* XRK 贴在语言框右侧，缩短跨章桥 */
+  frameXrk: {
+    x: 2640 + Math.ceil(langMaxX + 320) + 40,
+    y: 200,
+    width: 1680,
+    height: 980,
+  },
+  /* AI：蛇形三排，框贴内容（不再拉满画布） */
+  frameAi: {
+    x: 40,
+    y: 1160,
+    width: Math.ceil(aiMaxX + 320),
+    height: Math.ceil(aiMaxY + 200),
+  },
+  frameClash: { x: 80, y: 1160 + Math.ceil(aiMaxY + 200) + 40, width: 1520, height: 420 },
 
   topics: {
-    /* 序章 · 机器 */
     'computer-system': { x: 48, y: 280 },
     'os-essence': { x: COL0, y: TOP },
     'hw-sw-link': { x: COL0, y: 320 },
     'chip-units': { x: 920, y: 200 },
 
-    /* 第一章 · 环境 */
     'terminal-worlds': { x: 48, y: 280 },
     'linux-distros': { x: COL0, y: TOP },
     'linux-cli': { x: COL0, y: 400 },
@@ -39,25 +139,8 @@ export const LAYOUT = {
     'git-forges': { x: 1800, y: 400 },
     'xrk-first-run': { x: 2240, y: 200 },
 
-    /* 第二章 · 语言 */
-    'lang-what-is-language': { x: 48, y: TOP },
-    'lang-library-framework': { x: 400, y: TOP },
-    'lang-tech-stack': { x: 760, y: TOP },
-    'lang-tech-selection': { x: 1120, y: TOP },
-    'lang-compiled-runtime': { x: 48, y: 320 },
-    'lang-landscape': { x: 400, y: 320 },
-    'lang-javascript': { x: 48, y: 560 },
-    'lang-typescript': { x: 400, y: 560 },
-    'lang-python': { x: 760, y: 560 },
-    'lang-go': { x: 1120, y: 560 },
-    'lang-rust': { x: 48, y: 800 },
-    'lang-java': { x: 400, y: 800 },
-    'lang-csharp': { x: 760, y: 800 },
-    'lang-php': { x: 1120, y: 800 },
-    'lang-c': { x: 1480, y: 680 },
-    'lang-to-runtime': { x: 760, y: 1040 },
+    ...LANG_TOPICS,
 
-    /* 第三章 · 网络 */
     'api-frontend': { x: COL0, y: TOP },
     'network-basics': { x: COL0, y: 460 },
     'protocol-stack': { x: 880, y: 270 },
@@ -69,7 +152,6 @@ export const LAYOUT = {
     'reverse-proxy': { x: 2360, y: 200 },
     'net-edge-practice': { x: 2360, y: 480 },
 
-    /* 第四章 · XRK 融会 */
     'xrk-overview': { x: 48, y: TOP },
     'xrk-runtime': { x: 48, y: 400 },
     'xrk-core-layout': { x: 400, y: TOP },
@@ -80,33 +162,17 @@ export const LAYOUT = {
     'xrk-subserver': { x: 1120, y: 400 },
     'xrk-stream': { x: 760, y: 680 },
 
-    /* 第五章 · AI · 三排时间线 */
-    'ai-what': { x: 48, y: TOP },
-    'ai-llm-era': { x: 48 + GAP, y: TOP },
-    'ai-model-types': { x: 48 + GAP * 2, y: TOP },
-    'ai-arch-beyond': { x: 48 + GAP * 3, y: TOP },
-    'ai-transformer': { x: 48 + GAP * 4, y: TOP },
-    'ai-finetune': { x: 48 + GAP * 5, y: TOP },
-    'ai-chat-era': { x: 48 + GAP * 6, y: TOP },
+    ...AI_SNAKE,
 
-    'ai-openai-protocol': { x: 48, y: 420 },
-    'ai-tool-calling': { x: 48 + GAP, y: 420 },
-    'ai-agent-birth': { x: 48 + GAP * 2, y: 420 },
-    'ai-rag': { x: 48 + GAP * 3, y: 420 },
-    'ai-agentic-rag': { x: 48 + GAP * 4, y: 420 },
-    'ai-rag-shift': { x: 48 + GAP * 5, y: 420 },
-    'ai-mcp': { x: 48 + GAP * 6, y: 420 },
-
-    'ai-protocol-forks': { x: 48, y: 740 },
-    'ai-rules': { x: 48 + GAP, y: 740 },
-    'ai-skills': { x: 48 + GAP * 2, y: 740 },
-    'ai-subagent': { x: 48 + GAP * 3, y: 740 },
-    'ai-cli': { x: 48 + GAP * 4, y: 740 },
-    'ai-agents-md': { x: 48 + GAP * 5, y: 740 },
-
-    /* 番外 */
     clash: { x: 56, y: TOP },
     'clash-port': { x: 500, y: TOP },
     'clash-setup': { x: 940, y: TOP },
   },
+};
+
+/* 供调试 / 文档：当前使用的布局常量 */
+export const LAYOUT_META = {
+  GAP,
+  AI_SNAKE,
+  LANG_TOPICS,
 };

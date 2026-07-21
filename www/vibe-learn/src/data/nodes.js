@@ -1409,6 +1409,7 @@ export function buildFlowEdges() {
 
     const branch = e.branch || 'main';
     const tone = toneOf(e.target);
+    const pathKind = pathKindFor(branch, sameChapter, dist);
 
     return {
       id: e.id,
@@ -1422,7 +1423,11 @@ export function buildFlowEdges() {
       data: {
         branch,
         color: tone.edge,
-        pathKind: pathKindFor(branch, sameChapter, dist),
+        pathKind,
+        /* 同章与中短距跨章：默认肘形撞卡片时绕障 */
+        avoidObstacles: pathKind === 'smoothstep',
+        sourceId: e.source,
+        targetId: e.target,
         label: e.label,
       },
       interactive: true,

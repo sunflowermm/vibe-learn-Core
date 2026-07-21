@@ -36,7 +36,7 @@ export function inferHandles(a, b) {
 }
 
 /**
- * 同章与中短距跨章用正交折线；仅长距 / 番外用贝塞尔
+ * 同章与中短距跨章用正交折线（可避障）；仅长距 / 番外用贝塞尔
  * @param {string} branch
  * @param {boolean} sameChapter
  * @param {number} [dist]
@@ -44,7 +44,8 @@ export function inferHandles(a, b) {
 export function pathKindFor(branch, sameChapter, dist = 0) {
   if (branch === 'side') return 'bezier';
   if (sameChapter) return 'smoothstep';
-  if (dist > 0 && dist < 900) return 'smoothstep';
+  /* 跨章也尽量正交+避障，减少穿卡片；极远才贝塞尔 */
+  if (dist > 0 && dist < 1600) return 'smoothstep';
   return 'bezier';
 }
 
