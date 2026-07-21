@@ -84,19 +84,33 @@ function chapterMemberIds(chapterId) {
 }
 
 /**
- * 点选 / 悬停 → 点亮所属整章节点，以及触及该章的全部连线；
- * 关系文字仍只在「当前卡片相邻边」上显示，避免整章标签爆炸。
+ * 点选 / 悬停 → 点亮所属整章 + 与该章有连线的外部节点，以及相关连线；
+ * 关系文字仍只在「当前卡片相邻边」上显示，避免标签爆炸。
  */
 function syncHighlight(activeId, hoveredId) {
   const focusId = activeId || hoveredId;
   const chapterId = chapterIdOf(focusId);
-  const spotlight = chapterId
+  const chapterMembers = chapterId
     ? chapterMemberIds(chapterId)
     : neighborIds(focusId);
+
+  /** 整章 + 任意一跳跨章邻居 */
+  const spotlight = new Set(chapterMembers);
+  if (chapterMembers.size) {
+    for (const e of edges.value) {
+      const srcIn = chapterMembers.has(e.source);
+      const tgtIn = chapterMembers.has(e.target);
+      if (srcIn || tgtIn) {
+        spotlight.add(e.source);
+        spotlight.add(e.target);
+      }
+    }
+  }
+
   const hasFocus = Boolean(focusId);
 
   for (const e of edges.value) {
-    const touchesChapter =
+    const touchesLit =
       hasFocus && (spotlight.has(e.source) || spotlight.has(e.target));
     const onActive = Boolean(
       activeId && (e.source === activeId || e.target === activeId)
@@ -106,7 +120,7 @@ function syncHighlight(activeId, hoveredId) {
     );
     if (e.selected !== onActive) e.selected = onActive;
     const preview = onHover && !onActive;
-    const chapterLit = touchesChapter && !onActive && !preview;
+    const chapterLit = touchesLit && !onActive && !preview;
     if (e.data?.preview !== preview || e.data?.chapterLit !== chapterLit) {
       e.data = { ...(e.data || {}), preview, chapterLit };
     }
@@ -127,7 +141,9 @@ function syncHighlight(activeId, hoveredId) {
     let nextClass = '';
     if (hasFocus && !spotlight.has(n.id)) nextClass = 'is-dimmed';
     else if (hasFocus && spotlight.has(n.id) && n.id !== activeId) {
-      nextClass = 'is-chapter-peer';
+      nextClass = chapterMembers.has(n.id)
+        ? 'is-chapter-peer'
+        : 'is-bridge-peer';
     }
     if (n.class !== nextClass) n.class = nextClass;
   }
@@ -145,11 +161,18 @@ watch(
     if (!nonce || !props.activeId) return;
     await nextTick();
     const ch = chapterIdOf(props.activeId);
-    const ids = ch
-      ? [...chapterMemberIds(ch)]
-      : [...neighborIds(props.activeId)];
+    const members = ch
+      ? chapterMemberIds(ch)
+      : neighborIds(props.activeId);
+    const ids = new Set(members);
+    for (const e of edges.value) {
+      if (members.has(e.source) || members.has(e.target)) {
+        ids.add(e.source);
+        ids.add(e.target);
+      }
+    }
     fitView({
-      nodes: ids,
+      nodes: [...ids],
       padding: 0.28,
       duration: 420,
       maxZoom: 1.05,
@@ -233,7 +256,7 @@ function resetLayout() {
   doFit(450);
 }
 
-/** 框选当前节点所属整章 */
+/** 框选：本章 + 与本章有连线的外部节点 */
 function fitNeighborhood() {
   const id = props.activeId || hoverId.value;
   if (!id) {
@@ -241,9 +264,16 @@ function fitNeighborhood() {
     return;
   }
   const ch = chapterIdOf(id);
-  const ids = ch ? [...chapterMemberIds(ch)] : [id];
+  const members = ch ? chapterMemberIds(ch) : new Set([id]);
+  const ids = new Set(members);
+  for (const e of edges.value) {
+    if (members.has(e.source) || members.has(e.target)) {
+      ids.add(e.source);
+      ids.add(e.target);
+    }
+  }
   fitView({
-    nodes: ids,
+    nodes: [...ids],
     padding: 0.28,
     duration: 400,
     maxZoom: 1.05,
@@ -317,7 +347,7 @@ function fitNeighborhood() {
       </button>
     </div>
     <p class="graph-hint" aria-hidden="true">
-      点选点亮整章 · 悬停预览关系 · 点连线跳转
+      点选点亮整章及跨章关联 · 悬停预览关系 · 点连线跳转
     </p>
   </div>
 </template>
