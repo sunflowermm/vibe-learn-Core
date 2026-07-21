@@ -1,6 +1,6 @@
 <script setup>
 /**
- * 官网同款：虚线贝塞尔，描边色 = 目标节点色块
+ * 虚线贝塞尔：描边/标签色跟目标节点，保证两主题下都清晰可读
  */
 import { computed } from 'vue';
 import { BaseEdge, EdgeLabelRenderer, getBezierPath } from '@vue-flow/core';
@@ -26,9 +26,9 @@ const stroke = computed(() => props.data?.color || 'var(--edge-stroke)');
 
 const pathStyle = computed(() => ({
   stroke: stroke.value,
-  strokeWidth: props.selected ? 2 : 1.5,
-  strokeDasharray: '5 6',
-  strokeOpacity: props.selected ? 0.88 : 'var(--edge-opacity)',
+  strokeWidth: props.selected ? 2.75 : 'var(--edge-width)',
+  strokeDasharray: '6 5',
+  strokeOpacity: props.selected ? 1 : 'var(--edge-opacity)',
   ...(props.style || {}),
 }));
 
@@ -50,8 +50,8 @@ const labelStyle = computed(() => ({
   transform: `translate(-50%, -50%) translate(${geometry.value.lx}px, ${geometry.value.ly}px)`,
   pointerEvents: 'none',
   zIndex: 4,
-  borderColor: 'var(--label-border)',
-  color: 'var(--label-fg)',
+  borderColor: stroke.value,
+  color: stroke.value,
 }));
 </script>
 
@@ -75,12 +75,14 @@ export default { inheritAttrs: false };
 
 <style scoped>
 .rel-label {
-  max-width: 8.5rem;
-  padding: 3px 8px;
+  max-width: 10.5rem;
+  padding: 4px 10px;
   border-radius: 999px;
-  font-size: 10px;
-  line-height: 1.3;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
   font-family: var(--font-mono);
+  letter-spacing: 0.01em;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
@@ -91,6 +93,7 @@ export default { inheritAttrs: false };
 }
 
 .rel-label.selected {
-  font-weight: 600;
+  font-weight: 700;
+  box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 28%, transparent);
 }
 </style>

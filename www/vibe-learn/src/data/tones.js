@@ -1,16 +1,16 @@
 /**
- * 实心色卡：字色统一白；边线用偏暗的同色相，避免暗底上发白刺眼
+ * 实心色卡：字色统一白；边线用饱和同色相（靠透明度控刺眼，不压灰度）
  */
 const FG = '#ffffff';
 const MUTED = 'rgba(255,255,255,0.82)';
 
 export const TONES = {
-  indigo: { id: 'indigo', bg: '#4f46e5', fg: FG, muted: MUTED, edge: '#6366f1' },
-  pink: { id: 'pink', bg: '#db2777', fg: FG, muted: MUTED, edge: '#ec4899' },
-  sky: { id: 'sky', bg: '#0284c7', fg: FG, muted: MUTED, edge: '#0ea5e9' },
-  orange: { id: 'orange', bg: '#ea580c', fg: FG, muted: MUTED, edge: '#f97316' },
-  violet: { id: 'violet', bg: '#7c3aed', fg: FG, muted: MUTED, edge: '#8b5cf6' },
-  rose: { id: 'rose', bg: '#e11d48', fg: FG, muted: MUTED, edge: '#f43f5e' },
+  indigo: { id: 'indigo', bg: '#4f46e5', fg: FG, muted: MUTED, edge: '#818cf8' },
+  pink: { id: 'pink', bg: '#db2777', fg: FG, muted: MUTED, edge: '#f472b6' },
+  sky: { id: 'sky', bg: '#0284c7', fg: FG, muted: MUTED, edge: '#38bdf8' },
+  orange: { id: 'orange', bg: '#ea580c', fg: FG, muted: MUTED, edge: '#fb923c' },
+  violet: { id: 'violet', bg: '#7c3aed', fg: FG, muted: MUTED, edge: '#a78bfa' },
+  rose: { id: 'rose', bg: '#e11d48', fg: FG, muted: MUTED, edge: '#fb7185' },
 };
 
 /** 各节点色块（主线错开，番外偏橙/天空） */
