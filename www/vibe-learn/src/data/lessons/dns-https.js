@@ -1,11 +1,26 @@
 /** HTTPS 与 DNS — 对齐课件 */
 export default `# HTTPS 与 DNS
 
-## HTTPS：加密的 HTTP
+> 打开一个网址时，你其实做了两件大事：  
+> **DNS** 把名字变成 IP；**HTTPS** 在加密通道里说 HTTP。
+
+## 知识串（接在哪）
+
+| 已学 | 本课 |
+|------|------|
+| **IP** 找主机 | DNS：人记域名 → 机器用 IP |
+| **TCP** 可靠连接 | HTTPS：在 TCP 上再套 TLS |
+| **HTTP** 请求/响应 | HTTPS：加密后的 HTTP |
+
+记忆钩：**先问清门牌（DNS），再加密说话（HTTPS）。**
+
+---
+
+## 1. HTTPS：加密的 HTTP
 
 | | HTTP | HTTPS |
 |--|------|-------|
-| 传输 | 常为明文 | 经 TLS/SSL 加密 |
+| 传输 | 常为明文 | 经 **TLS**（旧称 SSL）加密 |
 | 风险 | 易被窃听、篡改 | 机密性、完整性更好 |
 | 地址 | \`http://\` | \`https://\`（常伴小锁） |
 
@@ -19,13 +34,19 @@ export default `# HTTPS 与 DNS
 4. 双方商定会话密钥  
 5. 之后用密钥加密通信  
 
+| 词 | 人话 |
+|----|------|
+| **证书** | 网站的「身份证」，由证书机构签发 |
+| **TLS** | 负责加密与身份校验的协议层 |
+| **小锁** | 浏览器认为证书与加密大致正常（不等于网站绝对可信） |
+
 证书解决的是：「我是不是在和我想的那台服务器说话」，而不只是「通道有加密」。
 
 ---
 
-## DNS：互联网的电话簿
+## 2. DNS：互联网的电话簿
 
-> **DNS（Domain Name System）** 把好记的**域名**（\`www.example.com\`）翻译成机器用的**IP**（如 \`93.184.216.34\`）。采用层次化、分布式的数据库协作完成。
+> **DNS（Domain Name System）** 把好记的**域名**（\`www.example.com\`）翻译成机器用的**IP**。
 
 ### 为什么需要 DNS？
 
@@ -33,7 +54,24 @@ export default `# HTTPS 与 DNS
 
 ### 解析大概怎么走
 
-1. 你输入 \`www.example.com\`  
+\`\`\`mermaid
+sequenceDiagram
+  participant U as 你/浏览器
+  participant C as 本地缓存
+  participant D as 本地 DNS
+  participant A as 权威服务器
+  U->>C: 查 example.com
+  alt 缓存命中
+    C-->>U: IP
+  else 未命中
+    U->>D: 询问
+    D->>A: 逐级查询
+    A-->>D: IP
+    D-->>U: IP（并缓存）
+  end
+\`\`\`
+
+1. 输入 \`www.example.com\`  
 2. 先查浏览器 / 系统**本地缓存**  
 3. 没有则问本地 DNS（常是运营商或你配的 8.8.8.8 等）  
 4. 本地 DNS 再去问：根 → 顶级域（如 \`.com\`）→ 权威服务器…  
@@ -57,12 +95,20 @@ export default `# HTTPS 与 DNS
 | **CNAME** | 别名 → 另一个域名 |
 | **MX** | 邮件服务器指向 |
 
-### DNS 与 HTTPS 怎么串起来
+---
 
-打开 \`https://example.com\` 时，常常是：
+## 3. 打开 https://example.com 时实际顺序
 
 **DNS 得到 IP → TCP 连接 → TLS 握手 → 再发 HTTP 请求**。
 
-任一步失败，表现不同：解析失败会「找不到服务器」；证书不对会浏览器警告；等。
-`;
+| 失败点 | 你可能看到 |
+|--------|------------|
+| DNS 失败 | 「找不到服务器」 |
+| 端口不通 | 超时、连接被拒绝 |
+| 证书不对 | 浏览器安全警告 |
+| HTTP 4xx/5xx | 页面或接口报错（那是应用层） |
 
+## 下一步
+
+**HTTP 与 Web** 看请求方法与状态码；**反向代理** 常在入口做 TLS 终止；番外 **Clash** 也会插手 DNS/选路。
+`;

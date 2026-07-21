@@ -27,6 +27,11 @@ const toneStyle = computed(() => ({
     <Handle id="right" type="source" :position="Position.Right" class="card__handle" :connectable="false" />
     <Handle id="top" type="source" :position="Position.Top" class="card__handle" :connectable="false" />
     <Handle id="bottom" type="source" :position="Position.Bottom" class="card__handle" :connectable="false" />
+    <!-- 目标侧同名锚点：Loose 模式下仍可靠；id 与 source 区分避免冲突 -->
+    <Handle id="left-t" type="target" :position="Position.Left" class="card__handle card__handle--t" :connectable="false" />
+    <Handle id="right-t" type="target" :position="Position.Right" class="card__handle card__handle--t" :connectable="false" />
+    <Handle id="top-t" type="target" :position="Position.Top" class="card__handle card__handle--t" :connectable="false" />
+    <Handle id="bottom-t" type="target" :position="Position.Bottom" class="card__handle card__handle--t" :connectable="false" />
 
     <div class="card__tag">{{ data.tag }}</div>
     <div class="card__title">{{ data.label }}</div>
@@ -116,5 +121,11 @@ const toneStyle = computed(() => ({
   background: rgba(255, 255, 255, 0.45) !important;
   border: none !important;
   pointer-events: none !important;
+}
+
+.card__handle--t {
+  opacity: 0 !important;
+  width: 10px !important;
+  height: 10px !important;
 }
 </style>

@@ -1,5 +1,5 @@
 <script setup>
-import { VueFlow, useVueFlow } from '@vue-flow/core';
+import { VueFlow, useVueFlow, ConnectionMode } from '@vue-flow/core';
 import { Background } from '@vue-flow/background';
 import { Controls } from '@vue-flow/controls';
 import { MiniMap } from '@vue-flow/minimap';
@@ -152,6 +152,7 @@ function resetLayout() {
       :nodes-draggable="true"
       :nodes-connectable="false"
       :edges-updatable="false"
+      :connection-mode="ConnectionMode.Loose"
       :elements-selectable="true"
       :elevate-edges-on-select="true"
       :select-nodes-on-drag="false"

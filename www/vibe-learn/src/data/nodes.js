@@ -45,6 +45,12 @@ import chapterXrk from './lessons/chapter-xrk.js';
 import chapterClash from './lessons/chapter-clash.js';
 import { LAYOUT } from './layout.js';
 import { toneOf } from './tones.js';
+import {
+  assignBundleOffsets,
+  assignFanoutOffsets,
+  inferHandles,
+  pathKindFor,
+} from '../utils/edge-routing.js';
 
 const CH_MACHINE = 'chapter-machine';
 const CH_ENV = 'chapter-env';
@@ -52,6 +58,14 @@ const CH_LANG = 'chapter-languages';
 const CH_NET = 'chapter-computer-network';
 const CH_XRK = 'chapter-xrk-agt';
 const CH_CLASH = 'chapter-clash';
+
+/** source 手柄 id → target 手柄 id（GraphCard 上 type=target） */
+const TARGET_HANDLE = {
+  left: 'left-t',
+  right: 'right-t',
+  top: 'top-t',
+  bottom: 'bottom-t',
+};
 
 export const graphFrames = [
   {
@@ -714,23 +728,58 @@ export function buildFlowNodes() {
 }
 
 export function buildFlowEdges() {
-  return knowledgeEdges.map((e) => {
+  const posMap = getOriginPositions();
+  const chapterOf = new Map(knowledgeNodes.map((n) => [n.id, n.parentId]));
+
+  const edges = knowledgeEdges.map((e) => {
+    const sp = posMap.get(e.source);
+    const tp = posMap.get(e.target);
+    const inferred =
+      sp && tp
+        ? inferHandles(sp, tp)
+        : { sourceHandle: e.sourceHandle || 'right', targetHandle: e.targetHandle || 'left' };
+
+    /* 同章：完全按几何选边；跨章：保留人工上下出边意图，否则也按几何 */
+    const sameChapter = chapterOf.get(e.source) === chapterOf.get(e.target);
+    let sourceHandle = inferred.sourceHandle;
+    let targetHandle = inferred.targetHandle;
+    if (
+      !sameChapter &&
+      e.sourceHandle &&
+      e.targetHandle &&
+      (e.sourceHandle === 'bottom' || e.sourceHandle === 'top')
+    ) {
+      sourceHandle = e.sourceHandle;
+      targetHandle = e.targetHandle;
+    }
+
+    const branch = e.branch || 'main';
     const tone = toneOf(e.target);
+
     return {
       id: e.id,
       source: e.source,
       target: e.target,
-      sourceHandle: e.sourceHandle,
-      targetHandle: e.targetHandle,
+      sourceHandle,
+      targetHandle: TARGET_HANDLE[targetHandle] || `${targetHandle}-t`,
       label: e.label,
       type: 'relation',
       animated: Boolean(e.animated),
-      data: { branch: e.branch || 'main', color: tone.edge },
+      data: {
+        branch,
+        color: tone.edge,
+        pathKind: pathKindFor(branch, sameChapter),
+        label: e.label,
+      },
       interactive: false,
       focusable: false,
       zIndex: 2,
     };
   });
+
+  assignBundleOffsets(edges);
+  assignFanoutOffsets(edges, posMap);
+  return edges;
 }
 
 export function getOriginPositions() {
