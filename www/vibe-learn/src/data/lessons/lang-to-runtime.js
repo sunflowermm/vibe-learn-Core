@@ -30,6 +30,8 @@ flowchart TB
 主服契约由 \`engines\` / \`packageManager\` 约束。  
 子服登记表：\`src/utils/subserver-runtimes.js\`。子服侧不提供 Node runtime（与主服职责重叠）。
 
+这是 **技术选型** 的结果：主栈 Node 做编排；短板用多语言子服补（见 **技术栈** / **技术选型** 课）。
+
 **包管理器对照（与第一章呼应）：** 安装 Node 通常自带 **npm / npx**（默认工具）；本仓选用 **pnpm**（替代实现）。Python 子服常见 **uv**（相对 pip 的替代品）。详见 **包管理器** 课。
 
 ## 来自编译型语言的对照
@@ -49,6 +51,8 @@ flowchart TB
 | \`<script>\` 引入 | \`import\` / \`node_modules\` |
 
 需要 Python、Go 等生态时，能力落在对应**子服 runtime**，由主服经 HTTP 调用。
+
+各语言细节见本框分课：**JavaScript / TypeScript / Python / Go / Rust / Java / C# / PHP / C**。
 
 ## 下一步
 

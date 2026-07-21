@@ -10,14 +10,14 @@ export const LAYOUT = {
   frameMachine: { x: 40, y: -1180, width: 1680, height: 560 },
   /* 第一章 · 环境与终端 */
   frameEnv: { x: 40, y: -540, width: 2920, height: 720 },
-  /* 第二章 · 计算机语言 */
-  frameLang: { x: 2640, y: -540, width: 1080, height: 720 },
+  /* 第二章 · 计算机语言 · 概念行 + 语言网格 */
+  frameLang: { x: 2640, y: -540, width: 2480, height: 1420 },
   /* 第三章 · 网络 */
   frameNet: { x: 40, y: 280, width: 3020, height: 820 },
-  /* 第四章 · XRK 实践（融会枢纽） */
-  frameXrk: { x: 2840, y: 200, width: 1680, height: 980 },
+  /* 第四章 · XRK 实践（融会枢纽）— 右移避开语言框 */
+  frameXrk: { x: 5000, y: 200, width: 1680, height: 980 },
   /* 第五章 · 人工智能 */
-  frameAi: { x: 40, y: 1280, width: 4920, height: 1180 },
+  frameAi: { x: 40, y: 1280, width: 6800, height: 1180 },
   /* 番外 */
   frameClash: { x: 80, y: 2620, width: 1520, height: 420 },
 
@@ -40,9 +40,22 @@ export const LAYOUT = {
     'xrk-first-run': { x: 2240, y: 200 },
 
     /* 第二章 · 语言 */
-    'lang-compiled-runtime': { x: 48, y: TOP },
-    'lang-landscape': { x: 48, y: 340 },
-    'lang-to-runtime': { x: 420, y: 220 },
+    'lang-what-is-language': { x: 48, y: TOP },
+    'lang-library-framework': { x: 400, y: TOP },
+    'lang-tech-stack': { x: 760, y: TOP },
+    'lang-tech-selection': { x: 1120, y: TOP },
+    'lang-compiled-runtime': { x: 48, y: 320 },
+    'lang-landscape': { x: 400, y: 320 },
+    'lang-javascript': { x: 48, y: 560 },
+    'lang-typescript': { x: 400, y: 560 },
+    'lang-python': { x: 760, y: 560 },
+    'lang-go': { x: 1120, y: 560 },
+    'lang-rust': { x: 48, y: 800 },
+    'lang-java': { x: 400, y: 800 },
+    'lang-csharp': { x: 760, y: 800 },
+    'lang-php': { x: 1120, y: 800 },
+    'lang-c': { x: 1480, y: 680 },
+    'lang-to-runtime': { x: 760, y: 1040 },
 
     /* 第三章 · 网络 */
     'api-frontend': { x: COL0, y: TOP },

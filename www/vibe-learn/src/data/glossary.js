@@ -240,6 +240,71 @@ export const GLOSSARY = {
     brief: '源站或节点所在区域影响延迟、跨境链路质量与合规；如港/日/新常作东亚中转讨论。',
     also: ['net-edge-practice', 'network-basics'],
   },
+  rtt: {
+    term: 'RTT（往返时延）',
+    brief: '发出到收到应答的往返时间；跨机房调用与串行 API 体感卡顿常与此相关。',
+    also: ['network-basics', 'tcp-udp', 'http-web'],
+  },
+  throughput: {
+    term: '吞吐量',
+    brief: '单位时间实际传过的有效数据量，通常小于带宽上限。',
+    also: ['network-basics'],
+  },
+  mtu: {
+    term: 'MTU',
+    brief: '链路层单帧/包可承载的最大载荷；过大易分片或丢包。',
+    also: ['network-basics', 'protocol-stack'],
+  },
+  five_tuple: {
+    term: '五元组',
+    brief: '源 IP、目的 IP、源端口、目的端口、协议；连接跟踪与防火墙常用。',
+    also: ['protocol-stack', 'tcp-udp', 'routing-nat'],
+  },
+  time_wait: {
+    term: 'TIME_WAIT',
+    brief: 'TCP 主动关闭方在最后 ACK 后短暂停留，吸收迟到包；短连接过多会占临时端口。',
+    also: ['tcp-udp', 'http-web'],
+  },
+  syn_flood: {
+    term: 'SYN 洪水',
+    brief: '大量半开 TCP 连接占满服务端资源的攻击形态；常靠 SYN Cookie、防火墙缓解。',
+    also: ['tcp-udp', 'firewall'],
+  },
+  sticky_session: {
+    term: '会话保持（粘滞）',
+    brief: '负载均衡尽量把同一用户打到同一后端；本地 Session 未共享时常见，更好是外置会话。',
+    also: ['reverse-proxy', 'http-web'],
+  },
+  snat_dnat: {
+    term: 'SNAT / DNAT',
+    brief: '改数据包源地址 / 目的地址：出网共享公网 IP，入站把公网端口转到内网服务。',
+    also: ['routing-nat', 'nat'],
+  },
+  sni: {
+    term: 'SNI',
+    brief: 'TLS 握手时客户端声明要访问的域名，便于同 IP 多证书、反代按域名分流。',
+    also: ['dns-https', 'reverse-proxy'],
+  },
+  idempotent: {
+    term: '幂等',
+    brief: '同一请求执行多次，效果与执行一次相同；支付回调、重试设计常考。',
+    also: ['http-web', 'api-frontend'],
+  },
+  http2_http3: {
+    term: 'HTTP/2 · HTTP/3',
+    brief: 'HTTP/2 多路复用减轻队头阻塞；HTTP/3 基于 QUIC/UDP，弱网更稳。',
+    also: ['http-web', 'tcp-udp'],
+  },
+  jwt: {
+    term: 'JWT',
+    brief: '常用于无状态鉴权的自包含令牌；相对 Session 易水平扩展，主动踢人需额外机制。',
+    also: ['http-web', 'api-frontend'],
+  },
+  cdn_hit_ratio: {
+    term: 'CDN 命中率',
+    brief: '请求在边缘直接命中缓存的比例；过低则回源多、源站压力大。',
+    also: ['net-edge-practice', 'reverse-proxy', 'cdn'],
+  },
   storage_hierarchy: {
     term: '存储层次',
     brief: '寄存器 → 缓存 → 内存 → 磁盘：越靠近 CPU 越快越小；解释「算得快但读盘慢」。',
@@ -339,13 +404,108 @@ export const GLOSSARY = {
   },
   javascript: {
     term: 'JavaScript（JS）',
-    brief: '最初为网页而生的语言；在 Node.js 上也可做后端与工具脚本。',
-    also: ['lang-landscape', 'lang-to-runtime'],
+    brief: '最初为网页而生的语言；在 Node.js 上也可做后端与工具脚本。本仓主服语言。',
+    also: ['lang-javascript', 'lang-what-is-language', 'lang-landscape', 'lang-to-runtime', 'runtime-nodejs'],
+  },
+  programming_language: {
+    term: '编程语言',
+    brief: '人与机器之间的形式化约定：语法 + 语义（常含标准库）；需运行时/编译器才能执行。',
+    also: ['lang-what-is-language', 'lang-compiled-runtime'],
+  },
+  library_code: {
+    term: '库（Library）',
+    brief: '可复用代码集合；由你的程序主动调用。控制权在你。',
+    also: ['lang-library-framework'],
+  },
+  framework: {
+    term: '框架（Framework）',
+    brief: '提供应用骨架与生命周期，在约定时机回调你的代码（控制反转）。Spring、Django 等属此类。',
+    also: ['lang-library-framework', 'lang-tech-stack'],
+  },
+  tech_stack: {
+    term: '技术栈（Tech Stack）',
+    brief: '做成产品时从前到后的技术组合：语言、运行时、框架、数据、中间件、部署等。',
+    also: ['lang-tech-stack', 'lang-tech-selection', 'xrk-language-stack'],
+  },
+  tech_selection: {
+    term: '技术选型',
+    brief: '在约束下为问题挑选足够好的技术组合：看团队、生态、需求、成本与可逆性，而非只追新。',
+    also: ['lang-tech-selection', 'lang-tech-stack'],
+  },
+  ioc: {
+    term: '控制反转（IoC）',
+    brief: '框架调用你的代码，而非你处处调用框架；依赖注入（DI）是常见手段。',
+    also: ['lang-library-framework', 'lang-java'],
+  },
+  adr: {
+    term: 'ADR',
+    brief: 'Architecture Decision Record：记录「选了什么、为何、不选什么」的架构决策文档。',
+    also: ['lang-tech-selection'],
   },
   typescript: {
     term: 'TypeScript（TS）',
     brief: '给 JavaScript 加上类型系统的超集；最终仍变成 JS 再运行。',
-    also: ['lang-landscape'],
+    also: ['lang-typescript', 'lang-javascript', 'lang-landscape'],
+  },
+  python_lang: {
+    term: 'Python',
+    brief: '可读性高、生态广的脚本语言；数据分析与 AI 周边强。本仓默认子服 pyserver。',
+    also: ['lang-python', 'xrk-language-stack', 'python_runtime'],
+  },
+  go_lang: {
+    term: 'Go（Golang）',
+    brief: '编译型、原生并发、易部署单二进制；适合高并发与网络工具。本仓 goserver。',
+    also: ['lang-go', 'xrk-language-stack'],
+  },
+  rust_lang: {
+    term: 'Rust',
+    brief: '无 GC、所有权保证内存安全的系统级语言；适合热点与安全路径。本仓 rustserver。',
+    also: ['lang-rust', 'lang-c', 'xrk-language-stack'],
+  },
+  java_lang: {
+    term: 'Java',
+    brief: '编译到字节码、由 JVM 执行；企业中间件与 Spring 生态深厚。本仓 jserver。',
+    also: ['lang-java', 'xrk-language-stack', 'vm_lang'],
+  },
+  csharp_lang: {
+    term: 'C# / .NET',
+    brief: '跑在 CLR 上的托管语言；Windows 企业与 ASP.NET Core 场景强。本仓 netserver。',
+    also: ['lang-csharp', 'xrk-language-stack', 'vm_lang'],
+  },
+  php_lang: {
+    term: 'PHP',
+    brief: '经典 Web 脚本语言；单文件启动成本低，适合轻量文本与 Web 工具。本仓 phpserver。',
+    also: ['lang-php', 'xrk-language-stack'],
+  },
+  c_lang: {
+    term: 'C 语言',
+    brief: '近金属的系统基石语言；手动内存与指针。本仓无独立 C 子服，用于理解底层与 FFI。',
+    also: ['lang-c', 'lang-rust', 'lang-compiled-runtime'],
+  },
+  event_loop: {
+    term: '事件循环',
+    brief: 'JS 单线程处理大量 I/O 的调度核心：等事件、排队回调，避免傻等阻塞。',
+    also: ['lang-javascript', 'runtime-nodejs'],
+  },
+  gil: {
+    term: 'GIL',
+    brief: 'CPython 全局解释器锁：同一进程内多线程难真正并行算 CPU；I/O 密集仍常用。',
+    also: ['lang-python'],
+  },
+  ownership: {
+    term: '所有权（Ownership）',
+    brief: 'Rust 中每个值通常有一个主人；借用规则由编译器检查，从根上减少一类内存错误。',
+    also: ['lang-rust'],
+  },
+  jvm: {
+    term: 'JVM',
+    brief: 'Java 虚拟机：执行字节码，含 JIT 与 GC；「一次编写、到处运行」的载体。',
+    also: ['lang-java', 'vm_lang', 'bytecode'],
+  },
+  clr: {
+    term: 'CLR',
+    brief: '.NET 公共语言运行时：执行 IL，含 JIT 与 GC；C# 等语言的托管宿主。',
+    also: ['lang-csharp', 'vm_lang'],
   },
 
   /* —— 第三章 · 网络 —— */
@@ -754,6 +914,81 @@ export const GLOSSARY = {
     term: '监听（Listen）',
     brief: '进程在某端口上等待别人连进来。代理引擎要先 listen，其它程序才能「走代理」。',
     also: ['clash-port', 'tcp-udp'],
+  },
+  system_proxy: {
+    term: '系统代理',
+    brief: '操作系统登记的 HTTP/HTTPS 代理地址；浏览器等多会读，终端/Agent 常常不读。',
+    also: ['clash-port', 'clash-setup', 'forward_proxy'],
+  },
+  http_proxy_env: {
+    term: 'HTTP(S)_PROXY 环境变量',
+    brief: '告诉进程「出网走哪个代理」的常见约定；CI、CLI、Coding Agent 常用。',
+    also: ['clash-port', 'forward_proxy'],
+  },
+  no_proxy: {
+    term: 'NO_PROXY',
+    brief: '列出不走代理的主机/域名（如 localhost、内网）；与强制代理配套。',
+    also: ['clash-port', 'routing-nat'],
+  },
+  tun_mode: {
+    term: 'TUN 模式',
+    brief: '用虚拟网卡尽量截获流量进代理引擎；权限高，适合顽固程序，入门非必开。',
+    also: ['clash-port', 'clash-setup', 'proxy_engine'],
+  },
+  mixed_port: {
+    term: 'mixed-port',
+    brief: '代理引擎上同时承接 HTTP 与 SOCKS 的合一监听端口（以客户端界面显示为准）。',
+    also: ['clash-port', 'listen'],
+  },
+  socks5: {
+    term: 'SOCKS5',
+    brief: '常见代理协议，可代理 TCP（及部分 UDP 场景）；常与 HTTP 代理并列配置。',
+    also: ['clash-port', 'forward_proxy', 'tcp-udp'],
+  },
+  policy_group: {
+    term: '策略组',
+    brief: '代理规则命中后进入的一组节点；可自动测速或手动挑选下一跳。',
+    also: ['clash', 'clash-setup', 'proxy_node'],
+  },
+  cidr: {
+    term: 'CIDR',
+    brief: '用「地址/前缀长度」表示网段（如 10.0.0.0/24）；路由表、安全组、VPC 通用写法。',
+    also: ['ip-addressing', 'routing-nat'],
+  },
+  dmz: {
+    term: 'DMZ',
+    brief: '内外网之间的缓冲区网段：对外服务放 DMZ，核心库放内网。',
+    also: ['network-basics', 'routing-nat'],
+  },
+  context_switch: {
+    term: '上下文切换',
+    brief: 'CPU 从跑一个任务切换到另一个任务的开销；线程过多时吞吐可能下降。',
+    also: ['os-essence', 'chip-units'],
+  },
+  page_fault: {
+    term: '缺页（Page fault）',
+    brief: '访问的虚拟页不在物理内存时，内核从磁盘装入；频繁缺页会明显变慢。',
+    also: ['os-essence', 'chip-units', 'storage_hierarchy'],
+  },
+  epoll: {
+    term: 'epoll（I/O 多路复用）',
+    brief: '一次盯多个 fd 是否可读可写的机制（Linux）；高并发网络服务常考，与 Node 事件循环同直觉家族。',
+    also: ['hw-sw-link', 'os-essence', 'tcp-udp'],
+  },
+  quic: {
+    term: 'QUIC / HTTP/3',
+    brief: '在 UDP 上实现可靠传输与多路复用的现代协议栈；HTTP/3 基于 QUIC。',
+    also: ['tcp-udp', 'http-web', 'http2_http3'],
+  },
+  security_group_proto: {
+    term: '安全组协议',
+    brief: '云防火墙规则必须指定 TCP/UDP 等协议+端口；只开端口数字、协议写错等于没开（如 MC 基岩要 UDP）。',
+    also: ['tcp-udp', 'routing-nat', 'firewall'],
+  },
+  locality: {
+    term: '局部性原理',
+    brief: '程序倾向再次访问刚用过的或邻近的数据；解释 Cache/缓存为何有效。',
+    also: ['chip-units', 'storage_hierarchy'],
   },
   mac: {
     term: 'MAC 地址',
