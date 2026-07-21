@@ -19,6 +19,7 @@ marked.setOptions({
 });
 
 const scrollEl = ref(null);
+const titleEl = ref(null);
 
 const html = computed(() => {
   if (!props.node?.markdown) return '';
@@ -37,19 +38,33 @@ watch(
   async () => {
     await nextTick();
     if (scrollEl.value) scrollEl.value.scrollTop = 0;
+    titleEl.value?.focus({ preventScroll: true });
   }
 );
 </script>
 
 <template>
-  <div v-if="node" class="panel">
+  <div v-if="node" class="panel" role="article" :aria-labelledby="`panel-title-${node.id}`">
     <header class="panel__head">
-      <div>
+      <div class="panel__head-text">
         <p class="panel__tag">{{ node.tag }}</p>
-        <h2 class="panel__title">{{ node.label }}</h2>
+        <h2
+          :id="`panel-title-${node.id}`"
+          ref="titleEl"
+          class="panel__title"
+          tabindex="-1"
+        >
+          {{ node.label }}
+        </h2>
         <p class="panel__sub">{{ node.subtitle }}</p>
       </div>
-      <button class="panel__close" type="button" aria-label="关闭" title="Esc" @click="emit('close')">
+      <button
+        class="panel__close"
+        type="button"
+        aria-label="关闭讲解面板"
+        title="Esc"
+        @click="emit('close')"
+      >
         Esc
       </button>
     </header>
@@ -122,6 +137,10 @@ watch(
   border-bottom: 1px solid var(--line);
 }
 
+.panel__head-text {
+  min-width: 0;
+}
+
 .panel__tag {
   margin: 0;
   font-family: var(--font-mono);
@@ -138,6 +157,12 @@ watch(
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--node-title);
+  text-wrap: balance;
+  scroll-margin-top: 1rem;
+}
+
+.panel__title:focus {
+  outline: none;
 }
 
 .panel__sub {
@@ -148,13 +173,16 @@ watch(
 
 .panel__close {
   align-self: flex-start;
+  flex-shrink: 0;
   font-family: var(--font-mono);
   font-size: 0.72rem;
   padding: 0.35rem 0.65rem;
   border-radius: 8px;
   color: var(--mist-dim);
   border: 1px solid var(--line);
-  transition: color 0.2s ease, border-color 0.2s ease;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .panel__close:hover {
@@ -169,6 +197,7 @@ watch(
   padding: 1.1rem 1.4rem 2.4rem;
   scrollbar-width: thin;
   scrollbar-color: var(--accent-soft) transparent;
+  overscroll-behavior: contain;
 }
 
 .panel__role {
