@@ -47,9 +47,38 @@ const isLight = computed(() => props.theme === 'light');
 const bgColor = computed(() =>
   isLight.value ? '#e2e8f0' : 'rgba(161, 161, 170, 0.18)'
 );
+/** 视口外遮罩：淡一点，别糊成灰板 */
 const miniMask = computed(() =>
-  isLight.value ? 'rgba(248, 250, 252, 0.7)' : 'rgba(9, 9, 11, 0.72)'
+  isLight.value ? 'rgba(15, 23, 42, 0.07)' : 'rgba(0, 0, 0, 0.48)'
 );
+const miniMaskStroke = computed(() =>
+  isLight.value ? 'rgba(14, 165, 233, 0.72)' : 'rgba(56, 189, 248, 0.75)'
+);
+
+/** 章框只画淡轮廓，避免缩略图被大方块占满 */
+function miniNodeColor(n) {
+  if (n.type === 'chapter' || n.data?.kind === 'chapter') {
+    return isLight.value
+      ? 'rgba(148, 163, 184, 0.12)'
+      : 'rgba(113, 113, 122, 0.16)';
+  }
+  return n.data?.tone?.bg || (isLight.value ? '#64748b' : '#a1a1aa');
+}
+
+function miniNodeStroke(n) {
+  if (n.type === 'chapter' || n.data?.kind === 'chapter') {
+    return isLight.value
+      ? 'rgba(100, 116, 139, 0.5)'
+      : 'rgba(161, 161, 170, 0.45)';
+  }
+  return isLight.value ? 'rgba(255, 255, 255, 0.45)' : 'rgba(0, 0, 0, 0.22)';
+}
+
+function miniNodeClass(n) {
+  return n.type === 'chapter' || n.data?.kind === 'chapter'
+    ? 'mm-chapter'
+    : 'mm-topic';
+}
 
 /** 悬停节点：预览相邻关系（未点选时也出标签） */
 const hoverId = ref(null);
@@ -339,12 +368,23 @@ function fitNeighborhood() {
       <Background variant="lines" :gap="24" :size="1" :pattern-color="bgColor" />
       <Controls position="bottom-left" aria-label="画布缩放控制" />
       <MiniMap
+        class="graph-minimap"
         position="bottom-right"
         pannable
         zoomable
-        aria-label="小地图"
-        :node-color="(n) => n.data?.tone?.bg || '#6366f1'"
+        :width="172"
+        :height="120"
+        :node-border-radius="6"
+        :node-stroke-width="1.2"
+        :node-color="miniNodeColor"
+        :node-stroke-color="miniNodeStroke"
+        :node-class-name="miniNodeClass"
         :mask-color="miniMask"
+        :mask-stroke-color="miniMaskStroke"
+        :mask-stroke-width="1.6"
+        :mask-border-radius="8"
+        :offset-scale="1.2"
+        aria-label="图谱概览"
       />
     </VueFlow>
     <div class="graph-tools">
@@ -503,34 +543,79 @@ function fitNeighborhood() {
 
 .graph-wrap :deep(.vue-flow__controls) {
   box-shadow: var(--shadow-sm);
-  border-radius: 4px;
+  border-radius: 12px;
   overflow: hidden;
   border: 1px solid var(--line);
-  margin: 15px;
+  margin: 14px;
+  background: var(--glass);
+  backdrop-filter: blur(10px);
 }
 
 .graph-wrap :deep(.vue-flow__controls-button) {
-  background: var(--ink-2);
+  background: transparent;
   border-bottom: 1px solid var(--line);
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   fill: var(--mist-dim);
 }
 
 .graph-wrap :deep(.vue-flow__controls-button:hover) {
-  background: var(--ink-3);
+  background: var(--accent-soft);
+  fill: var(--accent);
 }
 
 .graph-wrap :deep(.vue-flow__controls-button:focus-visible) {
   box-shadow: var(--focus-ring);
 }
 
+.graph-wrap :deep(.vue-flow__controls-button:last-child) {
+  border-bottom: 0;
+}
+
 .graph-wrap :deep(.vue-flow__minimap) {
-  border-radius: 4px;
+  width: 172px !important;
+  height: 120px !important;
+  margin: 14px;
+  padding: 0;
+  border-radius: 14px;
   overflow: hidden;
   border: 1px solid var(--line);
-  background: var(--ink-2) !important;
-  margin: 15px;
+  background:
+    radial-gradient(
+      120% 80% at 100% 0%,
+      color-mix(in srgb, var(--accent) 10%, transparent),
+      transparent 55%
+    ),
+    var(--glass) !important;
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-sm);
+}
+
+.graph-wrap :deep(.vue-flow__minimap::after) {
+  content: '概览';
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  z-index: 2;
+  pointer-events: none;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mist-dim);
+  opacity: 0.78;
+}
+
+.graph-wrap :deep(.vue-flow__minimap-mask) {
+  fill-opacity: 1;
+}
+
+.graph-wrap :deep(.vue-flow__minimap .mm-chapter) {
+  stroke-dasharray: 3 2;
+}
+
+.graph-wrap :deep(.vue-flow__minimap .mm-topic) {
+  filter: saturate(0.92);
 }
 
 .graph-tools {
