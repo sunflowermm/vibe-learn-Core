@@ -7,131 +7,80 @@ const props = defineProps({
   selected: { type: Boolean, default: false },
 });
 
-const isSide = computed(() => props.data.branch === 'side');
+const toneStyle = computed(() => {
+  const t = props.data.tone || {};
+  return {
+    '--card-bg': t.bg || '#f97316',
+    '--card-fg': t.fg || '#fff',
+    '--card-muted': t.muted || 'rgba(255,255,255,0.85)',
+  };
+});
 </script>
 
 <template>
-  <div class="stub" :class="{ selected, side: isSide }">
+  <div class="stub" :class="{ selected }" :style="toneStyle">
     <Handle id="left" type="source" :position="Position.Left" class="stub__handle" :connectable="false" />
     <Handle id="right" type="source" :position="Position.Right" class="stub__handle" :connectable="false" />
     <Handle id="top" type="source" :position="Position.Top" class="stub__handle" :connectable="false" />
     <Handle id="bottom" type="source" :position="Position.Bottom" class="stub__handle" :connectable="false" />
 
-    <div class="stub__surface">
-      <div class="stub__tag">{{ data.tag }}</div>
-      <div class="stub__title">{{ data.label }}</div>
-      <div class="stub__sub">{{ data.subtitle }}</div>
-      <div class="stub__badge">{{ data.branch === 'side' ? '番外 · 点开学习' : '预留延伸 · 点击查看说明' }}</div>
-    </div>
-    <div class="stub__glow" aria-hidden="true" />
+    <div class="stub__tag">{{ data.tag }}</div>
+    <div class="stub__title">{{ data.label }}</div>
+    <div class="stub__sub">{{ data.subtitle }}</div>
   </div>
 </template>
 
 <style scoped>
 .stub {
-  position: relative;
-  width: 260px;
-  border-radius: 16px;
-  border: 1.5px dashed rgba(62, 224, 196, 0.45);
-  background: rgba(12, 22, 34, 0.55);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
-  overflow: visible;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
-}
-
-.stub.side {
-  border-color: rgba(240, 160, 80, 0.5);
+  width: 240px;
+  padding: 15px 17px;
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  color: var(--card-fg);
+  border: none;
+  box-shadow: var(--shadow-node);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .stub:hover {
-  border-color: rgba(62, 224, 196, 0.65);
-}
-
-.stub.side:hover {
-  border-color: rgba(240, 160, 80, 0.7);
+  transform: translateY(-2px);
 }
 
 .stub.selected {
-  border-style: solid;
-  border-color: rgba(240, 160, 80, 0.85);
-  box-shadow: 0 0 0 1px rgba(240, 160, 80, 0.35), 0 12px 32px rgba(0, 0, 0, 0.35);
-}
-
-.stub__glow {
-  position: absolute;
-  inset: -3px;
-  border-radius: 18px;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.stub.selected .stub__glow {
-  opacity: 1;
-  animation: amber-pulse 2.2s ease-out infinite;
-}
-
-@keyframes amber-pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(240, 160, 80, 0.45);
-  }
-  70% {
-    box-shadow: 0 0 0 14px rgba(240, 160, 80, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(240, 160, 80, 0);
-  }
-}
-
-.stub__surface {
-  padding: 1rem 1.1rem 1.05rem;
-  border-radius: inherit;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--card-bg) 40%, #fff),
+    var(--shadow-node);
 }
 
 .stub__tag {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.14em;
+  font-size: 10px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--signal);
-}
-
-.stub.side .stub__tag {
-  color: var(--amber);
+  color: var(--card-muted);
 }
 
 .stub__title {
-  margin-top: 0.35rem;
-  font-family: var(--font-display);
-  font-size: 1.15rem;
+  margin-top: 7px;
+  font-size: 15px;
   font-weight: 700;
-  color: #eef4ff;
+  color: var(--card-fg);
 }
 
 .stub__sub {
-  margin-top: 0.35rem;
-  font-size: 0.76rem;
+  margin-top: 6px;
+  font-size: 12px;
   line-height: 1.4;
-  color: var(--mist-dim);
-}
-
-.stub__badge {
-  margin-top: 0.7rem;
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  color: rgba(158, 176, 200, 0.9);
+  color: var(--card-muted);
 }
 
 .stub__handle {
-  width: 8px !important;
-  height: 8px !important;
-  background: var(--signal) !important;
-  border: 2px solid #0a1220 !important;
-  opacity: 0.35;
+  width: 18px !important;
+  height: 4px !important;
+  border-radius: 2px !important;
+  background: #94a3b8 !important;
+  border: none !important;
+  opacity: 0.85;
   pointer-events: none !important;
-}
-
-.stub.side .stub__handle {
-  background: var(--amber) !important;
 }
 </style>

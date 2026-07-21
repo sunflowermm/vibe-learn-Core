@@ -124,10 +124,10 @@ const extendNodes = computed(() =>
 .panel__title {
   margin: 0.25rem 0 0;
   font-family: var(--font-display);
-  font-size: clamp(1.5rem, 2vw, 1.85rem);
+  font-size: clamp(1.35rem, 2vw, 1.65rem);
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #f5f8ff;
+  color: var(--node-title);
 }
 
 .panel__sub {
@@ -149,7 +149,7 @@ const extendNodes = computed(() =>
 
 .panel__close:hover {
   color: var(--mist);
-  border-color: rgba(62, 224, 196, 0.4);
+  border-color: var(--accent);
 }
 
 .panel__scroll {
@@ -158,18 +158,18 @@ const extendNodes = computed(() =>
   overflow: auto;
   padding: 1.1rem 1.4rem 2.4rem;
   scrollbar-width: thin;
-  scrollbar-color: rgba(62, 224, 196, 0.35) transparent;
+  scrollbar-color: var(--accent-soft) transparent;
 }
 
 .panel__role {
   margin: 0 0 0.9rem;
   padding: 0.75rem 0.9rem;
-  border-radius: 12px;
+  border-radius: 8px;
   font-size: 0.9rem;
   line-height: 1.55;
-  color: #d7e8df;
-  background: rgba(62, 224, 196, 0.08);
-  border: 1px solid rgba(62, 224, 196, 0.22);
+  color: var(--mist);
+  background: var(--accent-soft);
+  border: 1px solid var(--line);
 }
 
 .panel__nav {
@@ -178,7 +178,7 @@ const extendNodes = computed(() =>
   gap: 0.55rem;
   margin-bottom: 1.15rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(62, 224, 196, 0.1);
+  border-bottom: 1px solid var(--line);
 }
 
 .panel__nav-row {
@@ -201,42 +201,41 @@ const extendNodes = computed(() =>
   padding: 0.28rem 0.65rem;
   border-radius: 999px;
   color: var(--mist);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--ink-3);
   border: 1px solid var(--line);
   transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
 }
 
 .panel__chip:hover {
-  border-color: rgba(62, 224, 196, 0.45);
-  color: #e8fff8;
+  border-color: var(--accent);
+  color: var(--node-title);
 }
 
 .panel__chip.next {
-  border-color: rgba(240, 160, 80, 0.35);
-  color: #f5e6d0;
+  border-color: color-mix(in srgb, var(--amber) 40%, transparent);
+  color: var(--amber);
 }
 
 .panel__chip.next:hover {
-  border-color: rgba(240, 160, 80, 0.65);
-  background: rgba(240, 160, 80, 0.1);
+  border-color: var(--amber);
+  background: color-mix(in srgb, var(--amber) 12%, transparent);
 }
 
 .panel__chip.extend {
   border-style: dashed;
-  border-color: rgba(94, 234, 212, 0.45);
-  color: #c8fff2;
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--accent);
 }
 
 .panel__chip.extend:hover {
-  border-color: rgba(94, 234, 212, 0.75);
-  background: rgba(62, 224, 196, 0.1);
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .md {
   font-size: 0.95rem;
   line-height: 1.7;
   color: var(--mist);
-  animation: fade-in 0.55s 0.08s ease both;
 }
 
 .md :deep(h1) {
@@ -245,13 +244,13 @@ const extendNodes = computed(() =>
 
 .md :deep(h2) {
   font-family: var(--font-display);
-  font-size: 1.22rem;
+  font-size: 1.15rem;
   font-weight: 600;
-  color: #eef4ff;
-  margin: 1.55rem 0 0.6rem;
+  color: var(--node-title);
+  margin: 1.45rem 0 0.55rem;
   letter-spacing: -0.01em;
-  padding-bottom: 0.35rem;
-  border-bottom: 1px solid rgba(62, 224, 196, 0.12);
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--line);
 }
 
 .md :deep(h2:first-of-type) {
@@ -260,34 +259,34 @@ const extendNodes = computed(() =>
 
 .md :deep(h3) {
   font-family: var(--font-display);
-  font-size: 1.02rem;
+  font-size: 1rem;
   font-weight: 600;
-  color: #e2ecf8;
-  margin: 1.25rem 0 0.45rem;
+  color: var(--node-title);
+  margin: 1.15rem 0 0.4rem;
 }
 
 .md :deep(p) {
-  margin: 0.6rem 0;
+  margin: 0.55rem 0;
 }
 
 .md :deep(h3 + p),
 .md :deep(h3 + ul) {
-  margin-top: 0.35rem;
+  margin-top: 0.3rem;
 }
 
 .md :deep(hr) {
   border: none;
-  border-top: 1px solid rgba(62, 224, 196, 0.14);
-  margin: 1.5rem 0;
+  border-top: 1px solid var(--line);
+  margin: 1.35rem 0;
 }
 
 .md :deep(blockquote) {
-  margin: 0.8rem 0;
-  padding: 0.65rem 0.9rem;
-  border-left: 3px solid var(--signal);
-  background: rgba(62, 224, 196, 0.06);
-  border-radius: 0 10px 10px 0;
-  color: #d7e6f5;
+  margin: 0.75rem 0;
+  padding: 0.6rem 0.85rem;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  border-radius: 0 8px 8px 0;
+  color: var(--mist);
 }
 
 .md :deep(blockquote p) {
@@ -320,8 +319,8 @@ const extendNodes = computed(() =>
 }
 
 .md :deep(th) {
-  background: rgba(62, 224, 196, 0.08);
-  color: #e8f7f2;
+  background: var(--accent-soft);
+  color: var(--node-title);
   font-weight: 600;
 }
 
@@ -330,21 +329,21 @@ const extendNodes = computed(() =>
   font-size: 0.82em;
   padding: 0.1em 0.35em;
   border-radius: 4px;
-  background: rgba(240, 160, 80, 0.12);
+  background: color-mix(in srgb, var(--amber) 12%, transparent);
   color: var(--amber);
 }
 
 .md :deep(pre) {
   margin: 0.75rem 0;
   padding: 0.85rem 1rem;
-  border-radius: 12px;
+  border-radius: 8px;
   overflow: auto;
-  background: rgba(7, 11, 18, 0.65);
+  background: var(--ink-3);
   border: 1px solid var(--line);
   font-family: var(--font-mono);
   font-size: 0.8rem;
   line-height: 1.5;
-  color: #d5e2f0;
+  color: var(--mist);
 }
 
 .md :deep(pre code) {
@@ -354,12 +353,12 @@ const extendNodes = computed(() =>
 }
 
 .md :deep(strong) {
-  color: #f0f6ff;
+  color: var(--node-title);
   font-weight: 600;
 }
 
 .md :deep(input[type='checkbox']) {
   margin-right: 0.4rem;
-  accent-color: var(--signal);
+  accent-color: var(--accent);
 }
 </style>

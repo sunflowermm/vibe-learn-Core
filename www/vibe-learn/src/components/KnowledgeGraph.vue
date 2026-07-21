@@ -16,6 +16,7 @@ import {
 
 const props = defineProps({
   activeId: { type: String, default: null },
+  theme: { type: String, default: 'dark' },
 });
 
 const emit = defineEmits(['select']);
@@ -37,7 +38,13 @@ const nodeTypes = {
 };
 const edgeTypes = { relation: RelationEdge };
 
-/** 拖整章时记录上一帧位置，只平移章内 topic，绝不带动 stub */
+/** 官网示例：浅色用网格线，深色用点阵 */
+const bgVariant = computed(() => (props.theme === 'light' ? 'lines' : 'dots'));
+const bgColor = computed(() => (props.theme === 'light' ? '#e2e8f0' : '#334155'));
+const miniMask = computed(() =>
+  props.theme === 'light' ? 'rgba(248, 250, 252, 0.7)' : 'rgba(15, 23, 42, 0.75)'
+);
+
 let chapterDragOrigin = null;
 
 watch(
@@ -55,11 +62,8 @@ function onNodeClick({ node }) {
 }
 
 function onNodeDragStart({ node }) {
-  if (node.type === 'chapter') {
-    chapterDragOrigin = { x: node.position.x, y: node.position.y };
-  } else {
-    chapterDragOrigin = null;
-  }
+  chapterDragOrigin =
+    node.type === 'chapter' ? { x: node.position.x, y: node.position.y } : null;
 }
 
 function onNodeDrag({ node }) {
@@ -68,7 +72,6 @@ function onNodeDrag({ node }) {
   const dy = node.position.y - chapterDragOrigin.y;
   if (dx === 0 && dy === 0) return;
   chapterDragOrigin = { x: node.position.x, y: node.position.y };
-
   const chapterId = node.id;
   for (const n of nodes.value) {
     if (n.data?.kind === 'topic' && n.data.chapterId === chapterId) {
@@ -83,7 +86,7 @@ function onNodeDragStop() {
 }
 
 function onInit() {
-  nextTick(() => fitView({ padding: 0.12, duration: 700 }));
+  nextTick(() => fitView({ padding: 0.16, duration: 600 }));
 }
 
 function resetLayout() {
@@ -95,15 +98,11 @@ function resetLayout() {
       n.position.y = p.y;
     }
   }
-  nextTick(() => fitView({ padding: 0.12, duration: 500 }));
+  nextTick(() => fitView({ padding: 0.16, duration: 450 }));
 }
 
-const hint = computed(() => '拖卡片独立移动 · 章标题拖整章（番外不跟） · 空白平移');
-
 function miniColor(node) {
-  if (node.type === 'chapter') return '#1a3a44';
-  if (node.type === 'stub') return node.data?.branch === 'side' ? '#9a6b2f' : '#2a7a6a';
-  return '#1a9e88';
+  return node.data?.tone?.bg || '#10b981';
 }
 </script>
 
@@ -114,9 +113,9 @@ function miniColor(node) {
       v-model:edges="edges"
       :node-types="nodeTypes"
       :edge-types="edgeTypes"
-      :default-viewport="{ zoom: 0.62 }"
-      :min-zoom="0.15"
-      :max-zoom="1.85"
+      :default-viewport="{ zoom: 0.52 }"
+      :min-zoom="0.12"
+      :max-zoom="1.9"
       :nodes-draggable="true"
       :nodes-connectable="false"
       :edges-updatable="false"
@@ -136,20 +135,19 @@ function miniColor(node) {
       @pane-ready="onInit"
       @pane-double-click="resetLayout"
     >
-      <Background :gap="28" :size="1" pattern-color="rgba(62, 224, 196, 0.1)" />
+      <Background :variant="bgVariant" :gap="22" :size="1" :pattern-color="bgColor" />
       <Controls position="bottom-left" />
       <MiniMap
         position="bottom-right"
         pannable
         zoomable
         :node-color="miniColor"
-        mask-color="rgba(7, 11, 18, 0.75)"
+        :mask-color="miniMask"
       />
     </VueFlow>
     <div class="graph-tools">
-      <button type="button" class="graph-tool" @click="resetLayout">复位布局</button>
+      <button type="button" class="graph-tool" @click="resetLayout">复位</button>
     </div>
-    <p class="graph-hint">{{ hint }}</p>
   </div>
 </template>
 
@@ -158,6 +156,7 @@ function miniColor(node) {
   position: relative;
   width: 100%;
   height: 100%;
+  background: var(--canvas);
 }
 
 .graph-wrap :deep(.vue-flow__edges) {
@@ -200,72 +199,71 @@ function miniColor(node) {
   pointer-events: none;
 }
 
+/* 与官网 animated edge 一致 */
+.graph-wrap :deep(.vue-flow__edge.animated path) {
+  stroke-dasharray: 5;
+  animation: vf-dash 0.5s linear infinite;
+}
+
 .graph-wrap :deep(.vue-flow__controls),
 .graph-wrap :deep(.vue-flow__minimap) {
   z-index: 20;
 }
 
 .graph-wrap :deep(.vue-flow__controls) {
-  box-shadow: var(--shadow);
-  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  border-radius: 4px;
   overflow: hidden;
   border: 1px solid var(--line);
+  margin: 15px;
 }
 
 .graph-wrap :deep(.vue-flow__controls-button) {
   background: var(--ink-2);
-  border-bottom-color: var(--line);
-  fill: var(--mist);
+  border-bottom: 1px solid var(--line);
+  width: 28px;
+  height: 28px;
+  fill: var(--mist-dim);
+}
+
+.graph-wrap :deep(.vue-flow__controls-button:hover) {
+  background: var(--ink-3);
 }
 
 .graph-wrap :deep(.vue-flow__minimap) {
-  border-radius: 12px;
+  border-radius: 4px;
   overflow: hidden;
   border: 1px solid var(--line);
   background: var(--ink-2) !important;
+  margin: 15px;
 }
 
 .graph-tools {
   position: absolute;
-  top: 0.85rem;
-  right: 0.85rem;
+  top: 12px;
+  right: 12px;
   z-index: 30;
 }
 
 .graph-tool {
-  padding: 0.4rem 0.75rem;
-  border-radius: 999px;
-  font-size: 0.72rem;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 11px;
   font-family: var(--font-mono);
   color: var(--mist-dim);
-  background: rgba(7, 11, 18, 0.75);
+  background: var(--glass);
   border: 1px solid var(--line);
-  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-sm);
 }
 
 .graph-tool:hover {
-  color: var(--signal);
-  border-color: rgba(62, 224, 196, 0.45);
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
-.graph-hint {
-  position: absolute;
-  left: 50%;
-  bottom: 1.1rem;
-  transform: translateX(-50%);
-  margin: 0;
-  padding: 0.45rem 0.9rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  color: var(--mist-dim);
-  background: rgba(7, 11, 18, 0.72);
-  border: 1px solid var(--line);
-  backdrop-filter: blur(8px);
-  pointer-events: none;
-  white-space: nowrap;
-  max-width: calc(100% - 2rem);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  z-index: 20;
+@keyframes vf-dash {
+  from {
+    stroke-dashoffset: 10;
+  }
 }
 </style>

@@ -24,6 +24,8 @@ import stubXrk from './lessons/stub-xrk-agt.js';
 import clashLesson from './lessons/clash.js';
 import clashPortLesson from './lessons/clash-port.js';
 import clashSetupLesson from './lessons/clash-setup.js';
+import { LAYOUT } from './layout.js';
+import { toneOf } from './tones.js';
 
 const CH_NET = 'chapter-computer-network';
 
@@ -36,14 +38,13 @@ export const graphFrames = [
     subtitle: '从主机到网关：协议、地址与 Web 通路',
     tag: 'Chapter 01',
     role: '本图当前主干。框内是网络本质；框外可接「下一章」或「番外」而不打乱主线。',
-    /* 框贴紧主题行，留出顶/底给「伸出」的第二章 / 番外 */
-    position: { x: 0, y: 168 },
-    size: { width: 2360, height: 420 },
+    position: { x: LAYOUT.frame.x, y: LAYOUT.frame.y },
+    size: { width: LAYOUT.frame.width, height: LAYOUT.frame.height },
     markdown: chapterNetwork,
   },
 ];
 
-/** 章内主题：position 相对父章左上角（两行紧凑，方便框外 stub 贴着伸出） */
+/** 章内主题：position 相对父章左上角（错落布局见 layout.js） */
 export const knowledgeNodes = [
   {
     id: 'computer-system',
@@ -55,7 +56,7 @@ export const knowledgeNodes = [
     role: '先搞清程序跑在什么上面：没有主机与操作系统，后面的网络协议无处安放。',
     prereqs: [],
     next: ['network-basics', 'api-frontend'],
-    position: { x: 36, y: 148 },
+    position: LAYOUT.topics['computer-system'],
     markdown: computerSystem,
   },
   {
@@ -68,9 +69,8 @@ export const knowledgeNodes = [
     role: '回答「多台计算机为什么、以什么形态连在一起」——协议栈之前的世界观。',
     prereqs: ['computer-system'],
     next: ['protocol-stack'],
-    position: { x: 350, y: 268 },
+    position: LAYOUT.topics['network-basics'],
     markdown: networkBasics,
-    /** 番外入口：Clash 支线 */
     sideOut: ['clash'],
   },
   {
@@ -83,9 +83,8 @@ export const knowledgeNodes = [
     role: '从「写软件」视角看请求/响应；具体走路靠下层协议，Web 场景会汇入 HTTP。',
     prereqs: ['computer-system'],
     next: ['http-web'],
-    position: { x: 350, y: 72 },
+    position: LAYOUT.topics['api-frontend'],
     markdown: apiFrontend,
-    /** 第二章可从这里伸出 */
     chapterOut: ['stub-xrk-agt'],
   },
   {
@@ -98,7 +97,7 @@ export const knowledgeNodes = [
     role: '总地图：每一层解决一类问题。之后分支学「地址」和「怎么传」。',
     prereqs: ['network-basics'],
     next: ['ip-addressing', 'tcp-udp'],
-    position: { x: 670, y: 148 },
+    position: LAYOUT.topics['protocol-stack'],
     markdown: protocolStack,
     lab: 'osi',
   },
@@ -112,7 +111,7 @@ export const knowledgeNodes = [
     role: '网络层怎么找主机：IP / 子网划分；同网段里 ARP 把门牌换成网卡 MAC。',
     prereqs: ['protocol-stack'],
     next: ['routing-nat', 'dns-https'],
-    position: { x: 990, y: 72 },
+    position: LAYOUT.topics['ip-addressing'],
     markdown: ipAddressing,
   },
   {
@@ -125,7 +124,7 @@ export const knowledgeNodes = [
     role: '传输层：找到「哪个程序」，并选择可靠（TCP）还是求快（UDP）。',
     prereqs: ['protocol-stack'],
     next: ['http-web'],
-    position: { x: 990, y: 268 },
+    position: LAYOUT.topics['tcp-udp'],
     markdown: tcpUdp,
     sideOut: ['clash-port'],
   },
@@ -139,7 +138,7 @@ export const knowledgeNodes = [
     role: '有了地址之后：路由器按 IP 选路；NAT 让私有地址共享公网出口。',
     prereqs: ['ip-addressing'],
     next: ['reverse-proxy'],
-    position: { x: 1310, y: 72 },
+    position: LAYOUT.topics['routing-nat'],
     markdown: routingNat,
     sideOut: ['clash'],
   },
@@ -153,7 +152,7 @@ export const knowledgeNodes = [
     role: '人记域名、机器认 IP（DNS）；HTTPS 在 HTTP 外加 TLS，防窃听与假冒。',
     prereqs: ['ip-addressing'],
     next: ['http-web', 'reverse-proxy'],
-    position: { x: 1310, y: 268 },
+    position: LAYOUT.topics['dns-https'],
     markdown: dnsHttps,
     sideOut: ['clash'],
   },
@@ -167,7 +166,7 @@ export const knowledgeNodes = [
     role: '浏览器与网站对话的应用层协议；通常跑在 TCP（及 HTTPS 的 TLS）之上。',
     prereqs: ['tcp-udp', 'api-frontend'],
     next: ['reverse-proxy'],
-    position: { x: 1630, y: 148 },
+    position: LAYOUT.topics['http-web'],
     markdown: httpWeb,
   },
   {
@@ -180,7 +179,7 @@ export const knowledgeNodes = [
     role: '把前面的 HTTP/DNS/路由知识收束到工程入口：门面、负载均衡、TLS 终止、限流。',
     prereqs: ['http-web', 'routing-nat'],
     next: [],
-    position: { x: 1950, y: 148 },
+    position: LAYOUT.topics['reverse-proxy'],
     markdown: reverseProxy,
     sideOut: ['clash'],
   },
@@ -198,8 +197,7 @@ export const extensionStubs = [
     role: '预留：运行时、Core、HTTP、配置与前后端联调——挂在「API 与前后端」上，不冲散网络主线。',
     prereqs: ['api-frontend'],
     next: [],
-    /* 正对 api-frontend 正上方，短距跨过章框上沿 */
-    position: { x: 370, y: 8 },
+    position: LAYOUT.stubs['stub-xrk-agt'],
     markdown: stubXrk,
   },
   {
@@ -212,7 +210,7 @@ export const extensionStubs = [
     role: '代理引擎 = 本机端口入口 + 规则表（像路由）+ 节点出口。用端口/路由/DNS/正反向代理对照 Clash；不只有 Clash 能当这台引擎。',
     prereqs: ['network-basics', 'tcp-udp', 'routing-nat', 'dns-https', 'reverse-proxy'],
     next: ['clash-port'],
-    position: { x: 370, y: 612 },
+    position: LAYOUT.stubs.clash,
     markdown: clashLesson,
   },
   {
@@ -225,7 +223,7 @@ export const extensionStubs = [
     role: '系统代理只通知听话的软件；Agent/终端要手写 127.0.0.1:端口。TUN 是进阶，入门先会填端口。',
     prereqs: ['clash', 'tcp-udp'],
     next: ['clash-setup'],
-    position: { x: 700, y: 612 },
+    position: LAYOUT.stubs['clash-port'],
     markdown: clashPortLesson,
   },
   {
@@ -238,25 +236,28 @@ export const extensionStubs = [
     role: 'Verge 侧边栏：订阅填链接并选中 → 代理里全局并点选节点 → 首页开系统代理。TUN/规则稍后学。',
     prereqs: ['clash-port', 'reverse-proxy'],
     next: [],
-    position: { x: 1030, y: 612 },
+    position: LAYOUT.stubs['clash-setup'],
     markdown: clashSetupLesson,
   },
 ];
 
-/** 章内主线边（锚点写死，避免拖动时动态换 handle 抖动） */
+/**
+ * 边：主线尽量左右邻接；番外只保留短距入口，概念对照走面板「建议先学」
+ * （避免路由/DNS/反代同时竖直插向 clash 造成梳子线）
+ */
 export const knowledgeEdges = [
-  { id: 'e-sys-net', source: 'computer-system', target: 'network-basics', sourceHandle: 'bottom', targetHandle: 'left', label: '主机要互联', branch: 'main', animated: true },
   { id: 'e-sys-api', source: 'computer-system', target: 'api-frontend', sourceHandle: 'top', targetHandle: 'left', label: '软件如何协作', branch: 'main', animated: true },
+  { id: 'e-sys-net', source: 'computer-system', target: 'network-basics', sourceHandle: 'bottom', targetHandle: 'left', label: '主机要互联', branch: 'main', animated: true },
+  { id: 'e-api-http', source: 'api-frontend', target: 'http-web', sourceHandle: 'right', targetHandle: 'top', label: 'Web API 用 HTTP', branch: 'main' },
   { id: 'e-net-stack', source: 'network-basics', target: 'protocol-stack', sourceHandle: 'right', targetHandle: 'left', label: '连通后怎么传', branch: 'main' },
   { id: 'e-stack-ip', source: 'protocol-stack', target: 'ip-addressing', sourceHandle: 'top', targetHandle: 'left', label: '网络层：找主机', branch: 'main' },
   { id: 'e-stack-tcp', source: 'protocol-stack', target: 'tcp-udp', sourceHandle: 'bottom', targetHandle: 'left', label: '传输层：找进程', branch: 'main' },
   { id: 'e-ip-route', source: 'ip-addressing', target: 'routing-nat', sourceHandle: 'right', targetHandle: 'left', label: '跨网转发', branch: 'main' },
   { id: 'e-ip-dns', source: 'ip-addressing', target: 'dns-https', sourceHandle: 'bottom', targetHandle: 'top', label: '域名映射到 IP', branch: 'main' },
-  { id: 'e-tcp-http', source: 'tcp-udp', target: 'http-web', sourceHandle: 'right', targetHandle: 'left', label: 'HTTP 常跑在 TCP', branch: 'main' },
-  { id: 'e-api-http', source: 'api-frontend', target: 'http-web', sourceHandle: 'right', targetHandle: 'top', label: 'Web API 用 HTTP', branch: 'main' },
+  { id: 'e-tcp-http', source: 'tcp-udp', target: 'http-web', sourceHandle: 'right', targetHandle: 'bottom', label: 'HTTP 常跑在 TCP', branch: 'main' },
   { id: 'e-dns-http', source: 'dns-https', target: 'http-web', sourceHandle: 'right', targetHandle: 'bottom', label: '先解析再访问', branch: 'main' },
-  { id: 'e-http-proxy', source: 'http-web', target: 'reverse-proxy', sourceHandle: 'right', targetHandle: 'left', label: '入口工程化', branch: 'main' },
   { id: 'e-route-proxy', source: 'routing-nat', target: 'reverse-proxy', sourceHandle: 'right', targetHandle: 'top', label: '流量到门面', branch: 'main' },
+  { id: 'e-http-proxy', source: 'http-web', target: 'reverse-proxy', sourceHandle: 'right', targetHandle: 'left', label: '入口工程化', branch: 'main' },
   { id: 'e-dns-proxy', source: 'dns-https', target: 'reverse-proxy', sourceHandle: 'right', targetHandle: 'bottom', label: 'HTTPS 常在入口终止', branch: 'main' },
   {
     id: 'e-api-xrk',
@@ -275,33 +276,6 @@ export const knowledgeEdges = [
     sourceHandle: 'bottom',
     targetHandle: 'top',
     label: '番外：代理引擎',
-    branch: 'side',
-  },
-  {
-    id: 'e-route-clash',
-    source: 'routing-nat',
-    target: 'clash',
-    sourceHandle: 'bottom',
-    targetHandle: 'top',
-    label: '规则 ≈ 路由表',
-    branch: 'side',
-  },
-  {
-    id: 'e-dns-clash',
-    source: 'dns-https',
-    target: 'clash',
-    sourceHandle: 'bottom',
-    targetHandle: 'top',
-    label: 'DNS 供规则匹配',
-    branch: 'side',
-  },
-  {
-    id: 'e-proxy-clash',
-    source: 'reverse-proxy',
-    target: 'clash',
-    sourceHandle: 'bottom',
-    targetHandle: 'right',
-    label: '正向引擎 ↔ 反向门面',
     branch: 'side',
   },
   {
@@ -392,56 +366,71 @@ export function buildFlowNodes() {
     zIndex: 0,
   }));
 
-  const topics = knowledgeNodes.map((n) => ({
-    id: n.id,
-    type: 'knowledge',
-    position: topicAbsPosition(n),
-    data: {
-      label: n.label,
-      subtitle: n.subtitle,
-      tag: n.tag,
-      kind: 'topic',
-      chapterId: n.parentId,
-    },
-    selectable: true,
-    draggable: true,
-    zIndex: 10,
-  }));
+  const topics = knowledgeNodes.map((n) => {
+    const tone = toneOf(n.id);
+    return {
+      id: n.id,
+      type: 'knowledge',
+      position: topicAbsPosition(n),
+      data: {
+        label: n.label,
+        subtitle: n.subtitle,
+        tag: n.tag,
+        kind: 'topic',
+        chapterId: n.parentId,
+        tone,
+      },
+      selectable: true,
+      draggable: true,
+      zIndex: 10,
+    };
+  });
 
-  const stubs = extensionStubs.map((n) => ({
-    id: n.id,
-    type: 'stub',
-    position: { ...n.position },
-    data: {
-      label: n.label,
-      subtitle: n.subtitle,
-      tag: n.tag,
-      kind: 'stub',
-      branch: n.branch,
-    },
-    selectable: true,
-    draggable: true,
-    zIndex: 10,
-  }));
+  const stubs = extensionStubs.map((n) => {
+    const tone = toneOf(n.id);
+    return {
+      id: n.id,
+      type: 'stub',
+      position: { ...n.position },
+      data: {
+        label: n.label,
+        subtitle: n.subtitle,
+        tag: n.tag,
+        kind: 'stub',
+        branch: n.branch,
+        tone,
+      },
+      selectable: true,
+      draggable: true,
+      zIndex: 10,
+    };
+  });
 
   return [...frames, ...topics, ...stubs];
 }
 
 export function buildFlowEdges() {
-  return knowledgeEdges.map((e) => ({
-    id: e.id,
-    source: e.source,
-    target: e.target,
-    sourceHandle: e.sourceHandle,
-    targetHandle: e.targetHandle,
-    label: e.label,
-    type: 'relation',
-    animated: Boolean(e.animated),
-    data: { branch: e.branch || 'main' },
-    interactive: false,
-    focusable: false,
-    zIndex: 2,
-  }));
+  return knowledgeEdges.map((e) => {
+    const tone = toneOf(e.target);
+    return {
+      id: e.id,
+      source: e.source,
+      target: e.target,
+      sourceHandle: e.sourceHandle,
+      targetHandle: e.targetHandle,
+      label: e.label,
+      type: 'relation',
+      animated: Boolean(e.animated),
+      data: {
+        branch: e.branch || 'main',
+        color: tone.edge,
+        toneId: tone.id,
+      },
+      interactive: false,
+      focusable: false,
+      zIndex: 2,
+    };
+  });
 }
 
 /** 复位布局用的原始绝对坐标 */
