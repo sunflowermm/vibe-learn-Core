@@ -7,7 +7,7 @@ defineProps({
 
 <template>
   <div class="chapter" :class="{ selected }">
-    <header class="chapter__head chapter__drag" title="拖这里移动整章">
+    <header class="chapter__head chapter__drag" title="拖这里移动整章" data-blobity>
       <span class="chapter__tag">{{ data.tag }}</span>
       <div class="chapter__text">
         <h3 class="chapter__title">{{ data.label }}</h3>
@@ -49,6 +49,15 @@ defineProps({
   box-shadow: var(--shadow-node);
   pointer-events: all;
   cursor: grab;
+  transform: translateZ(0);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.chapter__head:hover {
+  transform: scale(1.02);
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.85),
+    var(--shadow-node);
 }
 
 .chapter__head:active {

@@ -18,7 +18,7 @@ const toneStyle = computed(() => {
 </script>
 
 <template>
-  <div class="stub" :class="{ selected }" :style="toneStyle">
+  <div class="stub" :class="{ selected }" :style="toneStyle" data-blobity>
     <Handle id="left" type="source" :position="Position.Left" class="stub__handle" :connectable="false" />
     <Handle id="right" type="source" :position="Position.Right" class="stub__handle" :connectable="false" />
     <Handle id="top" type="source" :position="Position.Top" class="stub__handle" :connectable="false" />
@@ -39,16 +39,21 @@ const toneStyle = computed(() => {
   color: var(--card-fg);
   border: none;
   box-shadow: var(--shadow-node);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+  transform: translateZ(0);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .stub:hover {
-  transform: translateY(-2px);
+  transform: scale(1.02) translateY(-2px);
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.85),
+    0 16px 40px rgba(15, 23, 42, 0.2);
 }
 
 .stub.selected {
   box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--card-bg) 40%, #fff),
+    0 0 0 3px rgba(255, 255, 255, 0.9),
     var(--shadow-node);
 }
 

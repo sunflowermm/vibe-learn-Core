@@ -1,9 +1,8 @@
 /**
- * Vue Flow 官网首页同款色块：实心彩色卡片 + 边线跟目标色
- * @see https://vueflow.dev/
+ * 实心彩色卡片 + 边线跟目标色（无绿色：用 indigo 替代 emerald）
  */
 export const TONES = {
-  emerald: { id: 'emerald', bg: '#10b981', fg: '#ffffff', muted: 'rgba(255,255,255,0.82)', edge: '#10b981' },
+  indigo: { id: 'indigo', bg: '#6366f1', fg: '#ffffff', muted: 'rgba(255,255,255,0.82)', edge: '#6366f1' },
   pink: { id: 'pink', bg: '#ec4899', fg: '#ffffff', muted: 'rgba(255,255,255,0.82)', edge: '#ec4899' },
   sky: { id: 'sky', bg: '#38bdf8', fg: '#0c4a6e', muted: 'rgba(12,74,110,0.75)', edge: '#0ea5e9' },
   orange: { id: 'orange', bg: '#f97316', fg: '#ffffff', muted: 'rgba(255,255,255,0.85)', edge: '#f97316' },
@@ -13,11 +12,11 @@ export const TONES = {
 
 /** 各节点色块（主线错开，番外偏橙/天空） */
 export const NODE_TONE = {
-  'computer-system': 'emerald',
+  'computer-system': 'indigo',
   'api-frontend': 'pink',
   'network-basics': 'sky',
   'protocol-stack': 'violet',
-  'ip-addressing': 'emerald',
+  'ip-addressing': 'indigo',
   'tcp-udp': 'orange',
   'routing-nat': 'sky',
   'dns-https': 'pink',

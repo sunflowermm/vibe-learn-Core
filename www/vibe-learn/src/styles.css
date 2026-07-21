@@ -12,9 +12,9 @@
   --canvas: #ffffff;
   --mist: #1a192b;
   --mist-dim: #64748b;
-  --accent: #10b981;
-  --accent-soft: rgba(16, 185, 129, 0.12);
-  --signal: #10b981;
+  --accent: #0ea5e9;
+  --accent-soft: rgba(14, 165, 233, 0.12);
+  --signal: #0284c7;
   --amber: #f97316;
   --line: rgba(15, 23, 42, 0.08);
   --glass: rgba(255, 255, 255, 0.92);
@@ -38,34 +38,35 @@
   --vf-connection-path: #94a3b8;
 }
 
+/* 黑天：锌黑底 + 冰蓝强调（不用绿色），网格靠 --grid 提亮 */
 [data-theme='dark'] {
   color-scheme: dark;
-  --ink: #0b1220;
-  --ink-2: #111827;
-  --ink-3: #1e293b;
-  --canvas: #0f172a;
-  --mist: #e2e8f0;
-  --mist-dim: #94a3b8;
-  --accent: #34d399;
-  --accent-soft: rgba(52, 211, 153, 0.14);
-  --signal: #34d399;
+  --ink: #09090b;
+  --ink-2: #18181b;
+  --ink-3: #27272a;
+  --canvas: #0c0c0f;
+  --mist: #f4f4f5;
+  --mist-dim: #a1a1aa;
+  --accent: #38bdf8;
+  --accent-soft: rgba(56, 189, 248, 0.16);
+  --signal: #7dd3fc;
   --amber: #fb923c;
-  --line: rgba(148, 163, 184, 0.16);
-  --glass: rgba(15, 23, 42, 0.92);
-  --shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
-  --shadow-node: 0 12px 32px rgba(0, 0, 0, 0.4);
-  --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.35);
-  --node-title: #f8fafc;
-  --chapter-bg: rgba(30, 41, 59, 0.45);
-  --chapter-border: rgba(148, 163, 184, 0.35);
-  --label-bg: #1e293b;
-  --label-fg: #cbd5e1;
-  --label-border: #334155;
-  --panel-bg: #111827;
-  --grid: #334155;
-  --topbar-bg: rgba(15, 23, 42, 0.92);
-  --vf-handle: #64748b;
-  --vf-connection-path: #64748b;
+  --line: rgba(255, 255, 255, 0.1);
+  --glass: rgba(24, 24, 27, 0.92);
+  --shadow: 0 20px 48px rgba(0, 0, 0, 0.55);
+  --shadow-node: 0 14px 36px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --node-title: #fafafa;
+  --chapter-bg: rgba(39, 39, 42, 0.42);
+  --chapter-border: rgba(161, 161, 170, 0.55);
+  --label-bg: #27272a;
+  --label-fg: #d4d4d8;
+  --label-border: #3f3f46;
+  --panel-bg: #111113;
+  --grid: #71717a;
+  --topbar-bg: rgba(9, 9, 11, 0.9);
+  --vf-handle: #71717a;
+  --vf-connection-path: #71717a;
 }
 
 *,
@@ -88,6 +89,8 @@ body {
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
 }
+
+/* Blobity 自带 html 光标点 + * { cursor: inherit }，勿再强制 cursor:none */
 
 button {
   font: inherit;

@@ -38,11 +38,13 @@ const nodeTypes = {
 };
 const edgeTypes = { relation: RelationEdge };
 
-/** 官网示例：浅色用网格线，深色用点阵 */
-const bgVariant = computed(() => (props.theme === 'light' ? 'lines' : 'dots'));
-const bgColor = computed(() => (props.theme === 'light' ? '#e2e8f0' : '#334155'));
+/** 黑天也用线阵并提亮，避免点阵看不清 */
+const bgVariant = computed(() => 'lines');
+const bgColor = computed(() => (props.theme === 'light' ? '#cbd5e1' : '#71717a'));
+const bgGap = computed(() => (props.theme === 'light' ? 22 : 20));
+const bgSize = computed(() => (props.theme === 'light' ? 1 : 1.35));
 const miniMask = computed(() =>
-  props.theme === 'light' ? 'rgba(248, 250, 252, 0.7)' : 'rgba(15, 23, 42, 0.75)'
+  props.theme === 'light' ? 'rgba(248, 250, 252, 0.7)' : 'rgba(9, 9, 11, 0.72)'
 );
 
 let chapterDragOrigin = null;
@@ -102,7 +104,7 @@ function resetLayout() {
 }
 
 function miniColor(node) {
-  return node.data?.tone?.bg || '#10b981';
+  return node.data?.tone?.bg || '#6366f1';
 }
 </script>
 
@@ -120,7 +122,7 @@ function miniColor(node) {
       :nodes-connectable="false"
       :edges-updatable="false"
       :elements-selectable="true"
-      :elevate-edges-on-select="false"
+      :elevate-edges-on-select="true"
       :select-nodes-on-drag="false"
       :multi-selection-key-code="null"
       :pan-on-drag="true"
@@ -135,7 +137,12 @@ function miniColor(node) {
       @pane-ready="onInit"
       @pane-double-click="resetLayout"
     >
-      <Background :variant="bgVariant" :gap="22" :size="1" :pattern-color="bgColor" />
+      <Background
+        :variant="bgVariant"
+        :gap="bgGap"
+        :size="bgSize"
+        :pattern-color="bgColor"
+      />
       <Controls position="bottom-left" />
       <MiniMap
         position="bottom-right"

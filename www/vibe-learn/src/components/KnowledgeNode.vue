@@ -18,8 +18,8 @@ const toneStyle = computed(() => {
 </script>
 
 <template>
-  <!-- 官网同款：彩色实心卡片 + 白字 + 浮起阴影 -->
-  <div class="k-node" :class="{ selected }" :style="toneStyle">
+  <!-- 官网同款：彩色实心卡片 + 白字 + hover 放大/光环 -->
+  <div class="k-node" :class="{ selected }" :style="toneStyle" data-blobity>
     <Handle id="left" type="source" :position="Position.Left" class="k-handle" :connectable="false" />
     <Handle id="right" type="source" :position="Position.Right" class="k-handle" :connectable="false" />
     <Handle id="top" type="source" :position="Position.Top" class="k-handle" :connectable="false" />
@@ -40,18 +40,25 @@ const toneStyle = computed(() => {
   color: var(--card-fg);
   border: none;
   box-shadow: var(--shadow-node);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  cursor: pointer;
+  transform: translateZ(0);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    filter 0.3s ease;
 }
 
 .k-node:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.18);
+  transform: scale(1.02) translateY(-2px);
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.85),
+    0 16px 40px rgba(15, 23, 42, 0.2);
 }
 
 .k-node.selected {
-  filter: brightness(1.05);
+  filter: brightness(1.06);
   box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--card-bg) 35%, #fff),
+    0 0 0 3px rgba(255, 255, 255, 0.9),
     var(--shadow-node);
 }
 
@@ -80,7 +87,6 @@ const toneStyle = computed(() => {
   color: var(--card-muted);
 }
 
-/* 官网细灰连接条 */
 .k-handle {
   width: 18px !important;
   height: 4px !important;

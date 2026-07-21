@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import KnowledgeGraph from './components/KnowledgeGraph.vue';
 import NodePanel from './components/NodePanel.vue';
+import { useBlobity } from './composables/useBlobity.js';
 import { getNodeById, countTopics } from './data/nodes.js';
 
 const THEME_KEY = 'vibe-learn-theme';
@@ -15,6 +16,8 @@ const theme = ref(
 
 const activeNode = computed(() => (activeId.value ? getNodeById(activeId.value) : null));
 
+/** 官网同款 Blobity 光标 blob */
+useBlobity(theme);
 watch(
   theme,
   (t) => {
@@ -51,7 +54,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
 <template>
   <div class="app-shell">
     <header class="topbar">
-      <div class="brand">
+      <div class="brand" data-blobity>
         <div class="brand-mark">Vibe <span>Learn</span></div>
         <div class="brand-sub">知识图谱</div>
       </div>
