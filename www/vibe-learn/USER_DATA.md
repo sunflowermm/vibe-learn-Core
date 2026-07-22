@@ -21,8 +21,8 @@
 
 ## 静态托管（默认）
 
-本目录是**前端工程**（有 `sign.json`），规则见仓库 [docs/www-mount.md](../../../../docs/www-mount.md)。
+前端工程两种之一：`enabled: false` → **只 build、不启进程**，挂 `dist`（见 [docs/www-mount.md](../../../../docs/www-mount.md)）。
 
-- `sign.json`：`serve: "static"` + `enabled: false` + `staticRoot: "dist"`；URL=`proxy.mount`（`/vibe-learn`）。
-- 主服挂 `dist/`；**重启主服不必再 build**。改课/改 UI 后本目录 `pnpm build`。
-- HMR：`serve` → `proxy`，`enabled` → `true`，再重启主服。
+- 已有 `dist`：直接挂，重启不重新 build。
+- 缺 `dist`：启动时自动 `pnpm build`。
+- HMR：改 `enabled: true` + `serve: "proxy"`，重启主服。
