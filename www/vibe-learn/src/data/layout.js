@@ -1,18 +1,221 @@
 /**
- * 章框与卡片布局。
- * 连线原则：方块迁就边（见 layout-from-edges.js），不靠绕障折线躲卡片。
+ * 章框与卡片布局 — 循序渐进的思维导图式分布。
+ *
+ * 原则（见 layout-from-edges.js）：
+ * 1. 方块迁就边；有边应相邻
+ * 2. 按「故事」选模式，禁止一律填格
+ * 3. 间距 ≥ CARD_W/H + gutter；assertNoCardOverlap
+ *
+ * 各章模式：
+ * | 章 | 模式 | 读法 |
+ * |----|------|------|
+ * | 序章 | spineForkMerge | 入口 → 双支 → 汇合 |
+ * | 环境 | pipelineColumns | 左→右工具链，上下成对 |
+ * | 语言 | 分区泳道 + hub-grid | 概念→版图扇出→框架→落地 |
+ * | 网络 | pipelineColumns | 入口→协议→分层→HTTP→边缘 |
+ * | XRK  | laneBlock 泳道 | 鸟瞰→结构→暴露→横切→实践→Stream |
+ * | AI   | snake | 时间线折返 |
+ * | 番外 | chain | 短链 |
  */
 import {
+  CARD_COL,
+  CARD_GUTTER_X,
+  CARD_H,
+  CARD_ROW,
+  CARD_W,
+  assertNoCardOverlap,
+  belowBlockY,
   chainRowPositions,
-  hubSpokePositions,
+  hubSpokeGridPositions,
+  laneBlockPositions,
+  pipelineColumnsPositions,
   snakeRowPositions,
+  spineForkMergePositions,
 } from '../utils/layout-from-edges.js';
 
 const TOP = 120;
-const COL0 = 480;
-const GAP = 340;
+const ORIGIN_X = 48;
+const LANE_GAP = CARD_ROW + 56;
+const PIPE_PAIR = CARD_ROW + 24;
 
-/* —— 第五章 AI：蛇形折返，行末竖线接到下一行 —— */
+/* ═══════════════════════════════════════════
+ * 序章 · 脊柱分叉汇合
+ * computer-system → (os ‖ hw-sw) → chip-units
+ * ═══════════════════════════════════════════ */
+const MACHINE_TOPICS = spineForkMergePositions({
+  spine: ['computer-system', 'os-essence', 'chip-units'],
+  /* os 作脊柱中段；硬件链路作下支，与 os 并行后汇入芯片 */
+  lower: 'hw-sw-link',
+  originX: ORIGIN_X,
+  originY: 220,
+  colGap: CARD_COL,
+  branchGap: CARD_ROW,
+});
+/* os 与 hw-sw 同列上下：微调 os 到上支位置 */
+MACHINE_TOPICS['os-essence'] = {
+  x: MACHINE_TOPICS['computer-system'].x + CARD_COL,
+  y: 220 - CARD_ROW,
+};
+MACHINE_TOPICS['hw-sw-link'] = {
+  x: MACHINE_TOPICS['computer-system'].x + CARD_COL,
+  y: 220 + CARD_ROW,
+};
+MACHINE_TOPICS['chip-units'] = {
+  x: MACHINE_TOPICS['computer-system'].x + CARD_COL * 2,
+  y: 220,
+};
+assertNoCardOverlap(MACHINE_TOPICS, 'frameMachine');
+
+/* ═══════════════════════════════════════════
+ * 第一章 · 左→右流水线（上下双轨）
+ * 终端 → Linux → Node 工具链 → Git → 首次跑通
+ * ═══════════════════════════════════════════ */
+const ENV_TOPICS = pipelineColumnsPositions(
+  [
+    'terminal-worlds',
+    ['linux-distros', 'linux-cli'],
+    ['runtime-nodejs', 'installers-path'],
+    'package-managers',
+    ['git-workspace', 'git-forges'],
+    'xrk-first-run',
+  ],
+  { originX: ORIGIN_X, originY: 240, colGap: CARD_COL, pairGap: PIPE_PAIR }
+);
+assertNoCardOverlap(ENV_TOPICS, 'frameEnv');
+
+/* ═══════════════════════════════════════════
+ * 第二章 · 分区泳道 + 版图枢纽网格
+ * 概念链 → 模型 → 语言网格 → 框架带 → 落地
+ * ═══════════════════════════════════════════ */
+const LANG_CONCEPTS = chainRowPositions(
+  [
+    'lang-what-is-language',
+    'lang-library-framework',
+    'lang-tech-stack',
+    'lang-tech-selection',
+  ],
+  { x: ORIGIN_X, y: TOP, gap: CARD_COL }
+);
+
+const MODEL_Y = belowBlockY(LANG_CONCEPTS, 80);
+const LANG_MODEL = {
+  'lang-compiled-runtime': { x: ORIGIN_X, y: MODEL_Y },
+  'lang-landscape': {
+    x: LANG_CONCEPTS['lang-tech-selection'].x,
+    y: MODEL_Y,
+  },
+};
+
+/** 本仓优先：JS/TS/前端 → 子服语言 → 系统/脚本 */
+const LANG_IDS = [
+  'lang-javascript',
+  'lang-typescript',
+  'lang-html-css',
+  'lang-python',
+  'lang-go',
+  'lang-rust',
+  'lang-java',
+  'lang-csharp',
+  'lang-php',
+  'lang-c',
+  'lang-shell',
+  'lang-powershell',
+];
+
+const LANG_GRID = hubSpokeGridPositions('lang-landscape', LANG_IDS, {
+  hub: LANG_MODEL['lang-landscape'],
+  childX: LANG_MODEL['lang-landscape'].x + CARD_W + CARD_GUTTER_X + 40,
+  cols: 3,
+  colGap: CARD_COL,
+  rowGap: CARD_ROW,
+  align: 'top',
+  fill: 'column',
+  includeHub: false,
+});
+
+const langBand = { ...LANG_CONCEPTS, ...LANG_MODEL, ...LANG_GRID };
+
+const FW_Y0 = belowBlockY(langBand, 100);
+const FW_FRONT = chainRowPositions(
+  ['fw-vue', 'fw-react', 'fw-angular', 'fw-nextjs'],
+  { x: LANG_CONCEPTS['lang-library-framework'].x, y: FW_Y0, gap: CARD_COL }
+);
+const FW_BACK = chainRowPositions(
+  [
+    'fw-spring',
+    'fw-express-nest',
+    'fw-django-fastapi',
+    'fw-gin',
+    'fw-aspnet',
+    'fw-laravel',
+  ],
+  {
+    x: LANG_CONCEPTS['lang-what-is-language'].x,
+    y: FW_Y0 + CARD_ROW,
+    gap: CARD_COL,
+  }
+);
+
+const LANG_TOPICS = {
+  ...langBand,
+  ...FW_FRONT,
+  ...FW_BACK,
+  'lang-to-runtime': {
+    x: Math.min(...LANG_IDS.map((id) => LANG_GRID[id].x)),
+    y: belowBlockY({ ...LANG_GRID, ...FW_FRONT, ...FW_BACK }, 48),
+  },
+};
+assertNoCardOverlap(LANG_TOPICS, 'frameLang');
+
+/* ═══════════════════════════════════════════
+ * 第三章 · 左→右网络栈流水线
+ * 双入口 → 协议 → 寻址/传输 → 路由/DNS → HTTP → 反代 → 边缘
+ * ═══════════════════════════════════════════ */
+const NET_TOPICS = pipelineColumnsPositions(
+  [
+    ['network-basics', 'api-frontend'],
+    'protocol-stack',
+    ['ip-addressing', 'tcp-udp'],
+    ['routing-nat', 'dns-https'],
+    'http-web',
+    ['reverse-proxy', 'net-edge-practice'],
+  ],
+  { originX: ORIGIN_X, originY: 260, colGap: CARD_COL, pairGap: PIPE_PAIR }
+);
+assertNoCardOverlap(NET_TOPICS, 'frameNet');
+
+/* ═══════════════════════════════════════════
+ * 第四章 · 纵向泳道（循序渐进）
+ * 鸟瞰 → 结构 → 暴露/通道 → 横切 → 实践 → Stream 收束
+ * ═══════════════════════════════════════════ */
+const XRK_TOPICS = laneBlockPositions(
+  [
+    /* L0 入口 */
+    ['xrk-overview', 'xrk-biz-map'],
+    /* L1 结构：Runtime / Core / 插件 / 语言栈 */
+    ['xrk-runtime', 'xrk-core-layout', 'xrk-plugin-arch', 'xrk-language-stack'],
+    /* L2 暴露与通道 */
+    [
+      'xrk-tasker-channels',
+      'xrk-events',
+      'xrk-http-www',
+      'xrk-subserver',
+      'xrk-http-auth',
+    ],
+    /* L3 横切基建 */
+    ['xrk-config', 'xrk-database', 'xrk-factory-llm', 'xrk-mcp-ops'],
+    /* L4 动手 */
+    ['xrk-lab-plugin', 'xrk-lab-subserver'],
+    /* L5 汇合 → 第五章 */
+    ['xrk-stream'],
+  ],
+  { originX: ORIGIN_X, originY: TOP, colGap: CARD_COL, laneGap: LANE_GAP }
+);
+assertNoCardOverlap(XRK_TOPICS, 'frameXrk');
+
+/* ═══════════════════════════════════════════
+ * 第五章 · 蛇形时间线（已最优，略增行距）
+ * ═══════════════════════════════════════════ */
 const AI_SNAKE = snakeRowPositions(
   [
     [
@@ -42,137 +245,123 @@ const AI_SNAKE = snakeRowPositions(
       'ai-agents-md',
     ],
   ],
-  { originX: 48, originY: TOP, colGap: 300, rowGap: 280 }
+  { originX: ORIGIN_X, originY: TOP, colGap: CARD_COL, rowGap: LANE_GAP + 40 }
 );
+assertNoCardOverlap(AI_SNAKE, 'frameAi');
 
-/* —— 第二章语言：概念链 + 枢纽侧列，扇出不交叉 —— */
-const LANG_CONCEPTS = chainRowPositions(
-  [
-    'lang-what-is-language',
-    'lang-library-framework',
-    'lang-tech-stack',
-    'lang-tech-selection',
-  ],
-  { x: 48, y: TOP, gap: 340 }
+/* ═══════════════════════════════════════════
+ * 番外 Clash · 短链
+ * ═══════════════════════════════════════════ */
+const CLASH_TOPICS = chainRowPositions(
+  ['clash', 'clash-port', 'clash-setup'],
+  { x: ORIGIN_X, y: TOP, gap: CARD_COL }
 );
+assertNoCardOverlap(CLASH_TOPICS, 'frameClash');
 
-const LANG_MODEL = {
-  'lang-compiled-runtime': { x: 48, y: 320 },
-  /* 落在「技术选型」正下方，概念→版图竖线短、不斜穿 */
-  'lang-landscape': { x: 48 + 340 * 3, y: 320 },
+/* —— 包围盒 → 章框尺寸 —— */
+function boundsOf(map) {
+  const xs = Object.values(map).map((p) => p.x);
+  const ys = Object.values(map).map((p) => p.y);
+  return {
+    maxX: Math.max(...xs),
+    maxY: Math.max(...ys),
+  };
+}
+
+const machineB = boundsOf(MACHINE_TOPICS);
+const envB = boundsOf(ENV_TOPICS);
+const langB = boundsOf(LANG_TOPICS);
+const netB = boundsOf(NET_TOPICS);
+const xrkB = boundsOf(XRK_TOPICS);
+const aiB = boundsOf(AI_SNAKE);
+const clashB = boundsOf(CLASH_TOPICS);
+
+const PAD_W = CARD_W + 100;
+const PAD_H = CARD_H + 140;
+
+/** 章框在画布上的锚点：上→下主线，语言/XRK 靠右，循序不叠框 */
+const FRAME_MACHINE = { x: 40, y: -1180 };
+const FRAME_ENV = { x: 40, y: -540 };
+const FRAME_LANG = { x: 40 + Math.ceil(envB.maxX + PAD_W) + 80, y: -540 };
+const FRAME_NET = { x: 40, y: 280 };
+const FRAME_XRK = {
+  x: FRAME_LANG.x + Math.ceil(langB.maxX + PAD_W) + 80,
+  y: 200,
 };
-
-const LANG_SPOKES = hubSpokePositions(
-  'lang-landscape',
-  [
-    'lang-javascript',
-    'lang-typescript',
-    'lang-python',
-    'lang-go',
-    'lang-rust',
-    'lang-java',
-    'lang-csharp',
-    'lang-php',
-    'lang-c',
-  ],
-  {
-    hub: LANG_MODEL['lang-landscape'],
-    childX: 48 + 340 * 3 + 380,
-    childGap: 108,
-    align: 'top',
-  }
-);
-
-const LANG_TOPICS = {
-  ...LANG_CONCEPTS,
-  ...LANG_MODEL,
-  ...LANG_SPOKES,
-  /* 落地汇入：放在侧列下方，竖线接 landscape / js / python */
-  'lang-to-runtime': { x: LANG_SPOKES['lang-javascript'].x, y: LANG_SPOKES['lang-c'].y + 130 },
+const FRAME_AI = { x: 40, y: 1160 };
+const FRAME_CLASH = {
+  x: 80,
+  y: FRAME_AI.y + Math.ceil(aiB.maxY + PAD_H) + 60,
 };
-
-const langMaxY = Math.max(...Object.values(LANG_TOPICS).map((p) => p.y));
-const langMaxX = Math.max(...Object.values(LANG_TOPICS).map((p) => p.x));
-const aiMaxY = Math.max(...Object.values(AI_SNAKE).map((p) => p.y));
-const aiMaxX = Math.max(...Object.values(AI_SNAKE).map((p) => p.x));
 
 export const LAYOUT = {
-  frameMachine: { x: 40, y: -1180, width: 1680, height: 560 },
-  frameEnv: { x: 40, y: -540, width: 2920, height: 720 },
-  /* 语言章：侧列拉高，框贴内容 */
+  frameMachine: {
+    ...FRAME_MACHINE,
+    width: Math.ceil(machineB.maxX + PAD_W),
+    height: Math.ceil(machineB.maxY + PAD_H),
+  },
+  frameEnv: {
+    ...FRAME_ENV,
+    width: Math.ceil(envB.maxX + PAD_W),
+    height: Math.ceil(envB.maxY + PAD_H),
+  },
   frameLang: {
-    x: 2640,
-    y: -540,
-    width: Math.ceil(langMaxX + 320),
-    height: Math.ceil(langMaxY + 200),
+    ...FRAME_LANG,
+    width: Math.ceil(langB.maxX + PAD_W),
+    height: Math.ceil(langB.maxY + PAD_H),
   },
-  frameNet: { x: 40, y: 280, width: 3020, height: 820 },
-  /* XRK 贴在语言框右侧，缩短跨章桥 */
+  frameNet: {
+    ...FRAME_NET,
+    width: Math.ceil(netB.maxX + PAD_W),
+    height: Math.ceil(netB.maxY + PAD_H),
+  },
   frameXrk: {
-    x: 2640 + Math.ceil(langMaxX + 320) + 40,
-    y: 200,
-    width: 1680,
-    height: 980,
+    ...FRAME_XRK,
+    width: Math.ceil(xrkB.maxX + PAD_W),
+    height: Math.ceil(xrkB.maxY + PAD_H),
   },
-  /* AI：蛇形三排，框贴内容（不再拉满画布） */
   frameAi: {
-    x: 40,
-    y: 1160,
-    width: Math.ceil(aiMaxX + 320),
-    height: Math.ceil(aiMaxY + 200),
+    ...FRAME_AI,
+    width: Math.ceil(aiB.maxX + PAD_W),
+    height: Math.ceil(aiB.maxY + PAD_H),
   },
-  frameClash: { x: 80, y: 1160 + Math.ceil(aiMaxY + 200) + 40, width: 1520, height: 420 },
+  frameClash: {
+    ...FRAME_CLASH,
+    width: Math.ceil(clashB.maxX + PAD_W),
+    height: Math.ceil(clashB.maxY + PAD_H),
+  },
 
   topics: {
-    'computer-system': { x: 48, y: 280 },
-    'os-essence': { x: COL0, y: TOP },
-    'hw-sw-link': { x: COL0, y: 320 },
-    'chip-units': { x: 920, y: 200 },
-
-    'terminal-worlds': { x: 48, y: 280 },
-    'linux-distros': { x: COL0, y: TOP },
-    'linux-cli': { x: COL0, y: 400 },
-    'runtime-nodejs': { x: 920, y: TOP },
-    'installers-path': { x: 920, y: 400 },
-    'package-managers': { x: 1360, y: 200 },
-    'git-workspace': { x: 1800, y: TOP },
-    'git-forges': { x: 1800, y: 400 },
-    'xrk-first-run': { x: 2240, y: 200 },
-
+    ...MACHINE_TOPICS,
+    ...ENV_TOPICS,
     ...LANG_TOPICS,
-
-    'api-frontend': { x: COL0, y: TOP },
-    'network-basics': { x: COL0, y: 460 },
-    'protocol-stack': { x: 880, y: 270 },
-    'ip-addressing': { x: 1260, y: TOP },
-    'tcp-udp': { x: 1260, y: 460 },
-    'routing-nat': { x: 1640, y: TOP },
-    'dns-https': { x: 1640, y: 460 },
-    'http-web': { x: 2040, y: 260 },
-    'reverse-proxy': { x: 2360, y: 200 },
-    'net-edge-practice': { x: 2360, y: 480 },
-
-    'xrk-overview': { x: 48, y: TOP },
-    'xrk-runtime': { x: 48, y: 400 },
-    'xrk-core-layout': { x: 400, y: TOP },
-    'xrk-plugin-arch': { x: 400, y: 400 },
-    'xrk-http-www': { x: 760, y: TOP },
-    'xrk-language-stack': { x: 760, y: 400 },
-    'xrk-config': { x: 1120, y: TOP },
-    'xrk-subserver': { x: 1120, y: 400 },
-    'xrk-stream': { x: 760, y: 680 },
-
+    ...NET_TOPICS,
+    ...XRK_TOPICS,
     ...AI_SNAKE,
-
-    clash: { x: 56, y: TOP },
-    'clash-port': { x: 500, y: TOP },
-    'clash-setup': { x: 940, y: TOP },
+    ...CLASH_TOPICS,
   },
 };
 
-/* 供调试 / 文档：当前使用的布局常量 */
 export const LAYOUT_META = {
-  GAP,
-  AI_SNAKE,
+  CARD_W,
+  CARD_H,
+  CARD_COL,
+  CARD_ROW,
+  LANE_GAP,
+  strategy: {
+    machine: 'spineForkMerge',
+    env: 'pipelineColumns',
+    lang: 'lanes+hubGrid',
+    net: 'pipelineColumns',
+    xrk: 'laneBlock',
+    ai: 'snake',
+    clash: 'chain',
+  },
+  MACHINE_TOPICS,
+  ENV_TOPICS,
   LANG_TOPICS,
+  NET_TOPICS,
+  XRK_TOPICS,
+  AI_SNAKE,
+  CLASH_TOPICS,
 };

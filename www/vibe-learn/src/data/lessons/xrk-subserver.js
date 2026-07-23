@@ -69,8 +69,22 @@ sequenceDiagram
 
 参考：\`docs/subserver-api.md\`、\`docs/subserver-commonconfig.md\`、\`subserver/README.md\`。
 
+---
+
+## 示例：Python 子服独立插件仓库
+
+pyserver **框架**在主仓 \`subserver/pyserver/\`（包名 \`xrk-agt-pyserver\`）。  
+**业务插件**可独立成 Git 仓库，clone 进 \`apis/<group>/\`（勿把第三方写进主仓白名单）。
+
+| 仓库 | 作用 | 本地落点 |
+|------|------|----------|
+| [jmcomic](https://github.com/sunflowermm/jmcomic) | 禁漫下载 / PDF、QQ \`#车牌\`、MCP 工具 | \`subserver/pyserver/apis/jmcomic/\` |
+
+主仓白名单示例外设：\`apis/system\`、\`media-tools\`、\`doc-pipeline\`、\`web-fetch\`（见根 \`.gitignore\`）。  
+更多 Core / 通道仓库对照见 **业务层全景** §4。
+
 ## 下一步
 
 对话与工具链 → **Stream**（可经工具调用子服）；  
-配置细则 → **配置归属**；AI 概念时间线 → 第五章。
+配置细则 → **配置归属**；动手 → **实践·调子服**；AI 概念 → 第五章。
 `;

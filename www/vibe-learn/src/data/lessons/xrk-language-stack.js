@@ -64,7 +64,29 @@ flowchart TB
 - 契约：\`subserver/CONTRACT.md\`（\`/health\`、\`/api/list\`、\`/api/{group}/*\`）  
 - 插件：\`subserver/<runtime>/apis/<group>/\`
 
+---
+
+## 高星仓库（读源码 / 对照本仓）
+
+> stars 量为公开量级参考（会变）；重点是**学什么**与**本仓落点**，不是追星。下表按语言横切挑选，便于和本课「主服 Node + 多语言子服」对照。
+
+| 语言 / 栈 | 仓库 | 量级参考 | 学什么 | 对本仓落点 |
+|-----------|------|----------|--------|------------|
+| JavaScript | [nodejs/node](https://github.com/nodejs/node) | ⭐ 十万级 | 事件循环、模块、流 | **主服 Node** / AgentRuntime |
+| TypeScript | [microsoft/TypeScript](https://github.com/microsoft/TypeScript) | ⭐ 十万级 | 类型擦除、编译管道 | www / 子 Core 构建；运行时仍是 JS |
+| Python | [fastapi/fastapi](https://github.com/fastapi/fastapi) | ⭐ 八万级 | API、Depends、OpenAPI | **callSubserver** → **pyserver** |
+| Go | [gin-gonic/gin](https://github.com/gin-gonic/gin) | ⭐ 八万级 | 路由与中间件 | **goserver** |
+| Rust | [tokio-rs/axum](https://github.com/tokio-rs/axum) | ⭐ 两万级 | 类型安全 HTTP | **rustserver** |
+| Java | [spring-projects/spring-boot](https://github.com/spring-projects/spring-boot) | ⭐ 七万级 | Boot / IoC | **jserver** |
+| C# | [dotnet/aspnetcore](https://github.com/dotnet/aspnetcore) | ⭐ 三万级 | 中间件管道、DI | **netserver** |
+| PHP | [laravel/framework](https://github.com/laravel/framework) | ⭐ 三万级 | 容器与路由 | **phpserver** |
+| 前端 | [vuejs/core](https://github.com/vuejs/core) / [vitejs/vite](https://github.com/vitejs/vite) | ⭐ 四万 / 七万级 | 组件与构建 | **www** + **sign.json** |
+| 前端 | [facebook/react](https://github.com/facebook/react) / [vercel/next.js](https://github.com/vercel/next.js) | ⭐ 二十万 / 十三万级 | SPA / 元框架 | 同上；SSR 需反代 |
+
+各语言课另有更细的「高星仓库」表；此处只作栈级索引。
+
 ## 下一步
 
-**子服务端** — 进程模型、端口、配置读写边界与主服协作方式。
+**子服务端** — 进程模型、端口、配置读写边界与主服协作方式。  
+可选：从上表挑一个与你当前子服 runtime 对应的仓库，对照 \`subserver/CONTRACT.md\` 读一页入口代码。
 `;

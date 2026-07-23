@@ -2,8 +2,7 @@
  * 图谱连线路由：手柄推断、并线/扇出偏移、路径类型
  */
 
-const CARD_W = 250;
-const CARD_H = 96;
+import { CARD_H, CARD_W } from './layout-from-edges.js';
 
 /**
  * @param {{ x: number, y: number }} a 节点左上角

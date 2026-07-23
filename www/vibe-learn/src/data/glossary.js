@@ -1020,6 +1020,103 @@ export const GLOSSARY = {
     brief: '把请求分到多台后端，避免单机扛不住；常由反向代理完成。',
     also: ['reverse-proxy'],
   },
+
+  /* —— 第二章 · 语言 / 框架分轨 —— */
+  html_css: {
+    term: 'HTML / CSS',
+    brief: 'HTML 是标记语言（结构），CSS 是样式语言（外观）。它们是语言，不是 Vue/React 那种框架。',
+    also: ['lang-html-css', 'fw-vue', 'fw-react'],
+  },
+  shell_lang: {
+    term: 'Shell（Bash / Zsh）',
+    brief: '命令行脚本语言：变量、管道、条件、循环。是语言，不是前端框架。',
+    also: ['lang-shell', 'terminal-worlds', 'linux-cli'],
+  },
+  powershell_lang: {
+    term: 'PowerShell',
+    brief: 'Windows 上的对象管道脚本语言。与 Bash 同属语言轨，模型不同。',
+    also: ['lang-powershell', 'terminal-worlds'],
+  },
+  vue_fw: {
+    term: 'Vue',
+    brief: '建立在 JavaScript 上的渐进式前端框架。不是一门语言；宿主仍是 JS/TS。',
+    also: ['fw-vue', 'lang-library-framework', 'lang-javascript'],
+  },
+  react_fw: {
+    term: 'React',
+    brief: '建立在 JavaScript 上的 UI 库（生态常当框架用）。不是一门语言；勿说「React 语言」。',
+    also: ['fw-react', 'lang-library-framework', 'lang-javascript'],
+  },
+  angular_fw: {
+    term: 'Angular',
+    brief: 'TypeScript 向的全家桶前端框架（路由/表单/DI 内置）。不是语言。',
+    also: ['fw-angular', 'lang-typescript', 'lang-library-framework'],
+  },
+  nextjs_fw: {
+    term: 'Next.js',
+    brief: '基于 React 的 SSR/全栈元框架。语言仍是 JS/TS，UI 层是 React。',
+    also: ['fw-nextjs', 'fw-react', 'lang-javascript'],
+  },
+  spring_fw: {
+    term: 'Spring / Spring Boot',
+    brief: 'Java 上的应用框架（IoC/AOP/Boot）。不是「Spring 语言」。',
+    also: ['fw-spring', 'lang-java', 'lang-library-framework'],
+  },
+  express_nest_fw: {
+    term: 'Express / NestJS',
+    brief: 'Node.js 上的 Web 框架：Express 偏中间件，Nest 偏模块化 DI。宿主是 JS/TS。',
+    also: ['fw-express-nest', 'lang-javascript', 'runtime-nodejs'],
+  },
+  django_fastapi_fw: {
+    term: 'Django / FastAPI',
+    brief: 'Python Web 框架：Django 全栈，FastAPI 偏现代 API。不是 Python 语言本身。',
+    also: ['fw-django-fastapi', 'lang-python'],
+  },
+  gin_fw: {
+    term: 'Gin',
+    brief: 'Go 上常见的 HTTP Web 框架。宿主是 Go 语言。',
+    also: ['fw-gin', 'lang-go'],
+  },
+  aspnet_fw: {
+    term: 'ASP.NET Core',
+    brief: '.NET 上的 Web 框架（中间件管道 + DI）。语言是 C#，不是「.NET 语言」。',
+    also: ['fw-aspnet', 'lang-csharp'],
+  },
+  laravel_fw: {
+    term: 'Laravel',
+    brief: 'PHP 上常见的 Web 框架（Eloquent/Blade）。宿主是 PHP。',
+    also: ['fw-laravel', 'lang-php'],
+  },
+  tasker: {
+    term: 'Tasker（通道）',
+    brief: '消息通道适配器：把 OneBot/stdin/QQBot 等接入 Runtime。通道 ≠ 业务插件。',
+    also: ['xrk-tasker-channels', 'xrk-biz-map', 'agent_runtime'],
+  },
+  msg_segment: {
+    term: 'msgSegment',
+    brief: '消息段构造器（图文等）。业务里用裸名 msgSegment.image(url)，勿自行 import 全局。',
+    also: ['xrk-tasker-channels', 'xrk-runtime'],
+  },
+  llm_factory: {
+    term: 'LLM Factory',
+    brief: 'src/factory/llm：按配置创建多协议 LLM 客户端；ASR/TTS 同族。配在 CommonConfig。',
+    also: ['xrk-factory-llm', 'xrk-stream', 'llm'],
+  },
+  redis_cache: {
+    term: 'Redis',
+    brief: '主服默认依赖的缓存/队列底座；启动日志可见连接。业务状态勿只信进程内存。',
+    also: ['xrk-database', 'xrk-first-run'],
+  },
+  x_api_key: {
+    term: 'X-API-Key',
+    brief: '主服 HTTP 业务鉴权常用请求头。密钥在服务端配置，勿写进 www 前端。',
+    also: ['xrk-http-auth', 'http', 'api'],
+  },
+  events_loader: {
+    term: 'Events 监听',
+    brief: 'core/*/events 生命周期钩子；与 Tasker 不同。部分变更需重启进程（不热更）。',
+    also: ['xrk-events', 'xrk-plugin-arch', 'loader'],
+  },
 };
 
 /**

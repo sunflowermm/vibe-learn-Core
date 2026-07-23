@@ -67,14 +67,41 @@ export default `# 库 · 框架 · 引擎 · SDK
 
 | 说法 | 归类 |
 |------|------|
-| JavaScript | **语言** |
+| JavaScript / Python / Go / Shell… | **语言**（见语言版图分课） |
+| HTML / CSS | **语言**（标记 / 样式） |
 | Node.js | **运行时** |
+| **Vue** | **框架**（本框有专课） |
+| **React** | **库**（生态常当框架；本框有专课） |
 | Express / Nest / Spring Boot | **框架**（或微框架） |
 | axios / lodash | **库** |
 | pnpm | **工具**（包管理） |
 | AgentRuntime + 各 Loader | **框架式运行时**（本仓） |
 | pyserver 里的 FastAPI/Flask 等 | 子服侧 **框架**（若使用） |
 | PostgreSQL / Redis | **中间件 / 数据存储**，不是语言 |
+
+### 本框框架分课（点卡片）
+
+**前端 / 全栈**
+
+| 课 | 一句话 |
+|----|--------|
+| **Vue** | JS 渐进式前端框架；本仓 vibe-learn |
+| **React** | JS UI 库（生态常当框架） |
+| **Angular** | TS 向全家桶前端框架 |
+| **Next.js** | React 上的 SSR/全栈**元框架**（Vue 侧对照 Nuxt） |
+
+**后端（按宿主语言）**
+
+| 课 | 宿主语言 | 一句话 |
+|----|----------|--------|
+| **Spring / Boot** | Java | IoC/AOP；国内后端高频 |
+| **Express / Nest** | JS/TS | Node 微框架 vs 架构型框架 |
+| **Django / FastAPI** | Python | 全栈 vs 现代 API |
+| **Gin** | Go | 高并发 HTTP 常见选择 |
+| **ASP.NET Core** | C# | .NET 中间件管道 + DI |
+| **Laravel** | PHP | Eloquent / Blade 快速业务 |
+
+> 全部是**框架轨**，不进「语言版图」。说简历时：**语言 + 框架** 分开写。
 
 ---
 
@@ -98,7 +125,8 @@ export default `# 库 · 框架 · 引擎 · SDK
 
 ## 下一步
 
-**技术栈** — 多块拼成的工作台；  
+框架轨任选：**Vue / React / Angular / Next** · **Spring / Express·Nest / Django·FastAPI / Gin / ASP.NET / Laravel**；  
+**技术栈** — 语言+框架+中间件如何拼；  
 **技术选型** — 怎么选、面试怎么讲；  
-**语言版图** — 各语言分课。
+**语言版图** — 只收语言，不收框架。
 `;

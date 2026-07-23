@@ -23,6 +23,6 @@
 
 前端工程两种之一：`enabled: false` → **只 build、不启进程**，挂 `dist`（见 [docs/www-mount.md](../../../../docs/www-mount.md)）。
 
-- 已有 `dist`：直接挂，重启不重新 build。
-- 缺 `dist`：启动时自动 `pnpm build`。
+- 默认：每次主服启动都 `pnpm build`，再挂 `dist`（有旧 dist 也会重编）。
+- 嫌慢：`sign.json` 设 `"buildOnStart": false`（改课文后要自己 build 或会看到旧页面）。
 - HMR：改 `enabled: true` + `serve: "proxy"`，重启主服。

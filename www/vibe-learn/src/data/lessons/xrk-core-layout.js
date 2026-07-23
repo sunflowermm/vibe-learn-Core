@@ -1,52 +1,102 @@
-/** Core 放码 */
+/** Core 放码 · 子目录职责与最小清单 */
 export default `# Core 放码位置
 
 > 规则：**业务代码位于 \`core/<名>/\`，基础设施位于 \`src/\`。**  
-> 边界清晰，有利于热加载、配置归属与多产品并存。
+> 边界清晰，有利于热加载、配置归属与多产品并存。  
+> 此处 **Core** 指业务能力包（目录约定），而非 CPU 核心。
 
-## 目录角色
+## 本课你要带走什么
+
+1. \`src/\` vs \`core/\` vs \`data/\` 谁改什么  
+2. 子目录职责表（plugin → www …）  
+3. **最小 Core 清单**：从零到可被 Loader 看见要哪些文件夹  
+4. 导入约定：\`#\` 别名 vs 相对路径
+
+---
+
+## 1. 目录角色
 
 | 路径 | 角色 | 修改主体 |
 |------|------|----------|
 | \`src/\` | 运行时基础设施 | 框架维护者 |
 | \`core/<名>-Core/\` | 产品业务包 | 产品开发者 |
 | \`data/\` | 运行时数据 | 进程读写生成 |
+| \`config/default_config/\` | **仅**框架 / LLM 工厂 / system 体系模板 | 框架；**勿**塞独立产品业务 yaml |
+| \`subserver/*/apis/\` | 多语言插件 | 子服开发者 |
 
-此处 **Core** 指业务能力包（目录约定），而非 CPU 核心。
+\`system-Core\`：框架示例外设 / 通道 / 运维助手；娱乐插件不加白名单、默认不提交。
 
-## 关键术语
+---
 
-| 术语 | 含义 |
-|------|------|
-| **plugin** | 挂载于 Runtime 的插件（消息 / 指令等） |
-| **http** | 对外 HTTP API |
-| **www** | 静态前端；须为 \`www/<应用名>/\` 子目录 |
-| **commonconfig** | 配置 schema / 表单约定 |
-| **Loader** | 扫描约定目录并挂载至 Runtime |
-| **system-Core** | 框架示例外设；与独立产品 Core 分工不同 |
+## 2. 子目录职责表
 
-本学习站通常来自某 Core 的 \`www\`。
+| 子目录 | 内容 | 典型用途 | 深挖课 |
+|--------|------|----------|--------|
+| \`plugin/\` | 指令与插件 | 机器人 / 指令 | 插件架构 · 实践·插件 |
+| \`http/\` | HTTP API | 接口 | HTTP/www · Auth |
+| \`www/<应用>/\` | 静态 / SPA 前端 | 控制台 / 学习站 | HTTP/www |
+| \`workflow/\` | AI 工作流 | Agent 对话 | Stream · Factory · MCP |
+| \`tasker/\` | 协议适配 | QQ / 其它通道 | Tasker 通道 |
+| \`events/\` | 事件监听 | 生命周期钩子 | events |
+| \`commonconfig/\` | 配置 Schema | 控制台表单 | 配置归属 |
+| \`default/\` | 产品默认 yaml（独立 Core） | 引导复制到 \`data/\` | 配置归属 |
 
-## 子目录约定
+www **必须**子目录；根名勿用保留段：\`api\` \`core\` \`media\` \`uploads\` \`File\` \`shared\`。
 
-| 子目录 | 内容 | 典型用途 |
-|--------|------|----------|
-| \`plugin/\` | 指令与插件 | 机器人 / 指令 |
-| \`http/\` | HTTP API | 接口 |
-| \`workflow/\` | AI 工作流 | Agent 流程 |
-| \`tasker/\` | 协议适配 | QQ / 其它通道 |
-| \`events/\` | 事件监听 | 系统事件 |
-| \`commonconfig/\` | 配置 Schema | 配置项 |
-| \`www/<应用>/\` | 静态前端 | 控制台 / 学习站 |
+\`\`\`mermaid
+flowchart TB
+  Core["core/名-Core"] --> P[plugin]
+  Core --> H[http]
+  Core --> W["www/应用"]
+  Core --> WF[workflow]
+  Core --> T[tasker]
+  Core --> E[events]
+  Core --> C[commonconfig]
+  Core --> D[default]
+\`\`\`
 
-## 导入约定
+完整「别搞混」对照见 **业务层全景**。
 
-- 无独立 \`package.json\` 的 Core：可使用根包 \`#infrastructure/*\` 等别名  
-- 有独立 \`package.json\` 的 Core：以相对路径引用根目录 \`src/\`（子包无 \`#\` 别名）  
+---
+
+## 3. 最小 Core 清单
+
+本地实验一个空 Core（名称自定，**默认不提交**）：
+
+1. \`core/my-lab-Core/\`  
+2. 至少一项：\`plugin/xxx.js\` **或** \`http/xxx.js\` **或** \`www/app/\` …  
+3. 需要配置时：\`commonconfig/\` +（独立产品）\`default/\`  
+4. 重启或等 Loader 扫描 → 日志可见  
+5. 有 \`package.json\` 则导入改相对路径，禁用 \`#\`
+
+导入约定：
+
+| Core 类型 | 导入 |
+|-----------|------|
+| **无** package.json | 可用根包 \`#infrastructure/*\`、\`#utils/*\` |
+| **有** package.json | **禁止 \`#\`**；相对路径到仓库根 \`src/\` |
+
+---
+
+## 4. 实践清单
+
+1. 打开 \`core/system-Core/\`，核对上表每个子目录是否存在、各举一个文件。  
+2. 打开本学习站所在：\`core/vibe-learn-Core/www/vibe-learn/\`，确认它是 www 子应用而非 \`src/\`。  
+3. 口述：要把「新 HTTP 接口」和「新页面」分别放哪。  
+4. 进入 **实践·最小插件** 按清单做一通。
+
+---
+
+## 5. 文档链接
+
+- \`docs/base-classes.md\` · \`docs/runtime-surface.md\`  
+- \`docs/www-mount.md\` · \`docs/框架可扩展性指南.md\`  
+- \`AGENTS.md\` · 规则 \`xrk-project.mdc\`
 
 ## 下一步
 
 **插件架构** — 约定目录如何被 Loader 挂载；  
 对外暴露 → **HTTP / www**；配置 → **配置归属**；  
-主服与子服语言分工 → **语言栈**。
+主服与子服语言分工 → **语言栈**；  
+地图索引 → **业务层全景**。
 `;
